@@ -16,7 +16,7 @@ This is an Outreachy Internship project.
 * `cd into toolhunt`
 
 
-## Technologies Used
+## Technologies to be Used
 * Vue.js
 * Flask
 * HTML
