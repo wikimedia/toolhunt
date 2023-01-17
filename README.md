@@ -18,18 +18,13 @@ This project uses [Phabricator](https://phabricator.wikimedia.org/project/board/
 
 - Clone this repo to your machine
 - `git clone https://github.com/wikimedia/toolhunt.git`
-- `cd into toolhunt`
+- `cd toolhunt`
+- Install Poetry and Flask if you haven't already done so
+- `poetry run flask run`
+- Open a browser window to localhost:5000
 
 ## Technologies to be Used
 
 - Python
 - Flask
 - Redis
-
-Notes to self (incorporate this better into the README later)
-To get this to actually work I had to:
-
-1. install poetry
-2. use pip to install flask
-3. run `poetry run flask app.py`
-4. what is the point of poetry again????????
