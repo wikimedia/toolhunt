@@ -28,3 +28,8 @@ This project uses [Phabricator](https://phabricator.wikimedia.org/project/board/
 - Python
 - Flask
 - Redis
+
+docker build -t toolhunt-poetry .
+docker run --rm -p 5000:5000 --name toolhunt-frontend toolhunt-poetry
+
+Still running into "the connection to the server was reset while the page was loading" error
