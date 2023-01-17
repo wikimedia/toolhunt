@@ -18,16 +18,12 @@ RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
 
 COPY . .
 
-ENTRYPOINT [ "flask" ]
-
-CMD ["run"]
-
 # COPY ./compose/local/flask/entrypoint /entrypoint
 # RUN sed -i 's/\r$//g' /entrypoint
 # RUN chmod +x /entrypoint
 
-# COPY ./compose/local/flask/start /start
-# RUN sed -i 's/\r$//g' /start
-# RUN chmod +x /start
+COPY ./compose/local/flask/start /start
+RUN sed -i 's/\r$//g' /start
+RUN chmod +x /start
 
-# ENTRYPOINT ["/entrypoint"]
+ENTRYPOINT ["/start"]
