@@ -19,17 +19,20 @@ This project uses [Phabricator](https://phabricator.wikimedia.org/project/board/
 - Clone this repo to your machine
 - `git clone https://github.com/wikimedia/toolhunt.git`
 - `cd toolhunt`
+
+### To run locally
+
 - Install Poetry and Flask if you haven't already done so
 - `poetry run flask run`
 - Open a browser window to localhost:5000
+
+### To run with Docker
+
+- `docker build -t toolhunt_poetry .`
+- `docker run --rm -p 5000:5000 --name toolhunt_frontend toolhunt_poetry`
 
 ## Technologies to be Used
 
 - Python
 - Flask
 - Redis
-
-docker build -t toolhunt-poetry .
-docker run --rm -p 5000:5000 --name toolhunt-frontend toolhunt-poetry
-
-Still running into "the connection to the server was reset while the page was loading" error
