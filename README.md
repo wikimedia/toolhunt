@@ -22,17 +22,22 @@ This project uses [Phabricator](https://phabricator.wikimedia.org/project/board/
 
 ### To run locally
 
-- Install Poetry and Flask if you haven't already done so
+- Install Poetry and Flask if they aren't installed locally
 - `poetry run flask run`
 - Open a browser window to localhost:5000
 
 ### To run with Docker
 
-- `docker build -t toolhunt_poetry .`
-- `docker run --rm -p 5000:5000 --name toolhunt_frontend toolhunt_poetry`
+- `docker build -t toolhunt_front_img .`
+- `docker run -d --rm -p 5000:5000 --name toolhunt_frontend toolhunt_front_img`
+- Open a browser window to localhost:5000
 
 ## Technologies to be Used
 
 - Python
 - Flask
 - Redis
+
+## To do
+
+- Write docker-compose.yml
