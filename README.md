@@ -16,20 +16,18 @@ This project uses [Phabricator](https://phabricator.wikimedia.org/project/board/
 
 ## Setup/Installation Requirements
 
-- Clone this repo to your machine
-- `git clone https://github.com/wikimedia/toolhunt.git`
+- Clone this repo to your machine with the command `git clone https://github.com/wikimedia/toolhunt.git`
 - `cd toolhunt`
 
 ### To run locally
 
-- Install Poetry and Flask if they aren't installed locally
+- Install Poetry and Flask if needed
 - `poetry run flask run`
 - Open a browser window to localhost:5000
 
 ### To run with Docker
 
-- `docker build -t toolhunt_front_img .`
-- `docker run -d --rm -p 5000:5000 --name toolhunt_frontend toolhunt_front_img`
+- `docker-compose up`
 - Open a browser window to localhost:5000
 
 ## Technologies to be Used
@@ -37,7 +35,4 @@ This project uses [Phabricator](https://phabricator.wikimedia.org/project/board/
 - Python
 - Flask
 - Redis
-
-## To do
-
-- Write docker-compose.yml
+- Docker
