@@ -18,7 +18,7 @@ RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
 
 COPY . .
 
-CMD ["flask", "run", "--host", "0.0.0.0"]
+CMD ["flask", "--debug", "run", "--host", "0.0.0.0"]
 
 # COPY ./compose/local/flask/entrypoint /entrypoint
 # RUN sed -i 's/\r$//g' /entrypoint
