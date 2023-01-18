@@ -2,7 +2,7 @@
 name = "toolhunt"
 version = "0.1.0"
 description = "A web application for editing Toolhub records in a fun and easy way"
-authors = ["Your Name <you@example.com>"]
+authors = ["nicole.barnabee@gmail.com", "hannah.waruguru8@gmail.com"]
 license = "GPL-3.0"
 readme = "README.md"
 
