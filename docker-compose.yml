@@ -3,7 +3,7 @@ services:
     container_name: flask-web
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: ./compose/flask/Dockerfile
     volumes:
       - .:/app
     ports:
