@@ -1,8 +1,9 @@
 services:
-  toolhunt_backend:
-    container_name: toolhunt_backend
+  flask-web:
+    container_name: flask-web
     build:
       context: .
+      dockerfile: Dockerfile
     volumes:
       - .:/app
     ports:

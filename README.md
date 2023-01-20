@@ -27,7 +27,7 @@ This project uses [Phabricator](https://phabricator.wikimedia.org/project/board/
 
 ### To run with Docker
 
-- `docker-compose up`
+- `docker-compose up --build --detach`
 - Open a browser window to localhost:5000
 
 ## Technologies to be Used
