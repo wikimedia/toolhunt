@@ -36,3 +36,4 @@ This project uses [Phabricator](https://phabricator.wikimedia.org/project/board/
 - Flask
 - Redis
 - Docker
+- MariaDB

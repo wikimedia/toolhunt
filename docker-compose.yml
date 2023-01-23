@@ -8,3 +8,10 @@ services:
       - .:/app
     ports:
       - "5000:5000"
+
+  db:
+    image: mariadb:10.4
+    environment:
+      MARIADB_ROOT_PASSWORD: test_pass
+    ports:
+      - "3033:3033"
