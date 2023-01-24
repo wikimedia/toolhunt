@@ -8,10 +8,19 @@ services:
       - .:/app
     ports:
       - "5000:5000"
+    depends_on:
+      - db
 
   db:
     image: mariadb:10.4
     environment:
-      MARIADB_ROOT_PASSWORD: test_pass
-    ports:
-      - "3033:3033"
+      MYSQL_ROOT_PASSWORD: test_pass
+      MYSQL_DATABASE: test
+    volumes:
+      - type: volume
+        source: dbdata
+        target: /var/lib/mysql
+        consistency: consistent
+
+volumes:
+  dbdata:

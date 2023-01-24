@@ -1,8 +1,13 @@
 import os
 
 from flask import Flask
+from flask_migrate import Migrate
+from flask_sqlalchemy import SQLAlchemy
 
 from api.config import config
+
+db = SQLAlchemy()
+migrate = Migrate()
 
 def create_app(config_name=None):
   if config_name is None:
@@ -11,7 +16,8 @@ def create_app(config_name=None):
   app = Flask(__name__)
 
   app.config.from_object(config[config_name])
+  db.init_app(app)
+  # migrate.init_app(app, db)
+
 
   return app
-
-# I have left out the SQLAlchemy, DB and Migration related code for the moment
