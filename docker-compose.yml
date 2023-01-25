@@ -15,8 +15,8 @@ services:
     image: mariadb:10.4
     environment:
       MYSQL_ROOT_PASSWORD: 12345
-      MY_SQL_USER: username
-      MY_SQL_PASSWORD: 12345
+      MYSQL_USER: username
+      MYSQL_PASSWORD: 12345
       MYSQL_DATABASE: test
     volumes:
       - type: volume
