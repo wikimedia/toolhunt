@@ -30,9 +30,16 @@ This project uses [Phabricator](https://phabricator.wikimedia.org/project/board/
 - `docker-compose up --build --detach`
 - Open a browser window to localhost:5000
 
+### To start and check the Database
+
+- `docker-compose exec flask-web python manage.py create_db`
+- `docker exec -it mariadb mariadb --user user -p mydatabase`
+- From the MariaDB command line: `SHOW TABLES;`
+
 ## Technologies to be Used
 
 - Python
 - Flask
 - Redis
 - Docker
+- MariaDB

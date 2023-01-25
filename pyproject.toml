@@ -9,6 +9,10 @@ readme = "README.md"
 [tool.poetry.dependencies]
 python = "^3.9"
 Flask = "^2.2.2"
+sqlalchemy = "^1.4.46"
+flask-sqlalchemy = "^3.0.2"
+flask-migrate = "^4.0.2"
+mysqlclient = "^2.1.1"
 
 
 [build-system]
