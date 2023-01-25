@@ -7,20 +7,23 @@ services:
     volumes:
       - .:/app
     ports:
-      - "5000:5000"
+      - 5000:5000
+    env_file: ./.env.dev
+    command: python manage.py run --host 0.0.0.0
     depends_on:
       - db
 
   db:
+    container_name: mariadb
     image: mariadb:10.4
+    restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: test_pass
-      MYSQL_DATABASE: test
+      - MARIADB_USER=user
+      - MARIADB_PASSWORD=mypassword
+      - MARIADB_ROOT_PASSWORD=rootpassword
+      - MARIADB_DATABASE=mydatabase
     volumes:
-      - type: volume
-        source: dbdata
-        target: /var/lib/mysql
-        consistency: consistent
+      - dbdata:/var/lib/mariadb/data/
 
 volumes:
   dbdata:
