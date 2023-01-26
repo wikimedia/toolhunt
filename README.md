@@ -33,7 +33,7 @@ This project uses [Phabricator](https://phabricator.wikimedia.org/project/board/
 ### To start and check the Database
 
 - `docker-compose exec flask-web python manage.py create_db`
-- `docker exec -it mariadb mariadb --user user -p mydatabase`
+- `docker exec -it mariadb mariadb --user user -p mydatabase` (password: mypassword)
 - From the MariaDB command line: `SHOW TABLES;`
 
 ## Technologies to be Used
