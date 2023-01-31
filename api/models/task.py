@@ -5,7 +5,9 @@ class Task(db.Model):
   __tablename__ = "task"
 
   id = db.Column(db.Integer, primary_key=True)
-  tool = db.Column(db.String(80), db.ForeignKey("tools.name"), nullable=False)
-  task = db.Column(db.String(80), db.ForeignKey("task_types.name"), nullable=False)
+  tool_name = db.Column(db.String(80), db.ForeignKey("tool.name"), nullable=False)
+  # tool = db.relationship("Tool", back_populates="task", lazy="dynamic")
+  field_name = db.Column(db.String(80), db.ForeignKey("field.name"), nullable=False)
+  # field = db.relationship("Field", back_populates="task", lazy="dynamic")
   user = db.Column(db.String(128), nullable=True)
   timestamp = db.Column(db.DateTime, nullable=True)
