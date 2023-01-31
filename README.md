@@ -36,6 +36,11 @@ This project uses [Phabricator](https://phabricator.wikimedia.org/project/board/
 - `docker exec -it mariadb mariadb --user user -p mydatabase` (password: mypassword)
 - From the MariaDB command line: `SHOW TABLES;`
 
+### To insert mock data into the Database
+
+- Open a browser window to localhost:5000
+- You should receive the message, "Data inserted!"
+
 ## Technologies to be Used
 
 - Python
