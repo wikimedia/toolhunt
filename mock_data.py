@@ -1,3 +1,6 @@
+from api.resources.db import db
+from api.models import Tool, Field, Task
+
 fieldData = [
   {
     "name": "wikidata_qid", 
@@ -45,3 +48,8 @@ taskData = [
     "field_name": "wikidata_qid"
   }
 ]
+
+def insertData():
+  db.engine.execute(Tool.__table__.insert(), toolData)
+  db.engine.execute(Field.__table__.insert(), fieldData)
+  db.engine.execute(Task.__table__.insert(), taskData)
