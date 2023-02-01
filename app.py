@@ -1,5 +1,5 @@
 from api import create_app
-from mock_data import insertData
+from data import insertData
 
 app = create_app()
 

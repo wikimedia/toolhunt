@@ -7,13 +7,13 @@ class UserSchema(Schema):
 class FieldSchema(Schema):
   name = fields.Str(required=True)
   description = fields.Str(required=True)
+  input_options = fields.Str(required=False)
 
 class ToolSchema(Schema):
   name = fields.Str(required=True)
   title = fields.Str(required=True)
   description = fields.Str(required=True)
   url = fields.Str(required=True)
-  # repository = fields.Str(required=False)
 
 class TaskSchema(Schema):
   id = fields.Int(dump_only=True)
@@ -22,4 +22,4 @@ class TaskSchema(Schema):
   field_name = fields.Str(required=True)
   field = fields.Nested(FieldSchema(), dump_only=True)
   user = fields.Str(required=False)
-  # date
+  date = fields.DateTime(required=False)
