@@ -17,9 +17,9 @@ class ToolSchema(Schema):
 
 class TaskSchema(Schema):
   id = fields.Int(dump_only=True)
-  tool_name = fields.Str(required=True)
+  tool_name = fields.Str(required=True, load_only=True)
   tool = fields.Nested(ToolSchema(), dump_only=True)
-  field_name = fields.Str(required=True)
+  field_name = fields.Str(required=True, load_only=True)
   field = fields.Nested(FieldSchema(), dump_only=True)
   user = fields.Str(required=False)
-  date = fields.DateTime(required=False)
+  timestamp = fields.DateTime(required=False)
