@@ -1,4 +1,4 @@
-from api.resources.db import db
+from api import db
 
 class Field(db.Model):
   __tablename__ = "field"

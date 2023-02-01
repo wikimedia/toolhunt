@@ -3,12 +3,13 @@ import os
 from flask import Flask
 from flask_migrate import Migrate
 from flask_smorest import Api 
+from flask_sqlalchemy import SQLAlchemy
+db = SQLAlchemy()
+migrate = Migrate()
+
 from api.resources.user import blp as UserBlueprint
 from api.resources.task import blp as TaskBlueprint
-from api.resources.db import db
 from api.config import config
-
-migrate = Migrate()
 
 
 def create_app(config_name=None):

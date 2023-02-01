@@ -1,4 +1,4 @@
-from api.resources.db import db
+from api import db
 
 class UserModel(db.Model):
   __tablename__ = "users"
