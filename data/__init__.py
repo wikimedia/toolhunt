@@ -5,6 +5,7 @@ from api.models import Tool, Field, Task
 from api.resources.db import db
 
 def insertData():
-  db.engine.execute(Tool.__table__.insert(), toolData)
-  db.engine.execute(Field.__table__.insert(), fieldData)
-  db.engine.execute(Task.__table__.insert(), taskData)
+  db.session.bulk_insert_mappings(Tool, toolData)
+  db.session.bulk_insert_mappings(Field, fieldData)
+  db.session.bulk_insert_mappings(Task, taskData)
+  db.session.commit()
