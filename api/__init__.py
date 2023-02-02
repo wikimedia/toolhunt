@@ -7,7 +7,8 @@ from flask_sqlalchemy import SQLAlchemy
 db = SQLAlchemy()
 migrate = Migrate()
 
-from api.resources.task import blp as TaskBlueprint
+from api.resources.blueprints.task import blp as TaskBlueprint
+from api.resources.blueprints.contribution import blp as ContributionBlueprint
 from api.config import config
 
 def create_app(config_name=None):
@@ -20,6 +21,7 @@ def create_app(config_name=None):
   api = Api(app)
   db.init_app(app)
   api.register_blueprint(TaskBlueprint)
+  api.register_blueprint(ContributionBlueprint)
   migrate.init_app(app, db)
 
 
