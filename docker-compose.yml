@@ -9,7 +9,7 @@ services:
     ports:
       - 5000:5000
     env_file: ./.env.dev
-    command: python manage.py run --host 0.0.0.0
+    command: /start
     depends_on:
       - db
 
