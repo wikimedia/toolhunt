@@ -4,5 +4,5 @@ app = create_app()
 
 @app.route('/')
 def hello():
-  return "Hello, World!"
+  return "Hello, world!"
 

@@ -20,6 +20,10 @@ RUN apt-get update \
     && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
     && rm -rf /var/lib/apt/lists/*
 
+COPY ./compose/flask/start /start
+RUN sed -i 's/\r$//g' /start
+RUN chmod +x /start
+
 RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
 COPY . /app
 
