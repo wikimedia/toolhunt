@@ -29,3 +29,8 @@ services:
 
 volumes:
   dbdata:
+
+networks:
+  default:
+    name: backend-frontend-bridge
+    external: true
