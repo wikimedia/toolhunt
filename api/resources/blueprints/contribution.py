@@ -15,7 +15,7 @@ class Contributions(MethodView):
   @blp.arguments(ContributionArgSchema, location="query", required=False)
   @blp.response(200, ContributionSchema(many=True))
   def get(self, query_args):
-    """Returns all contributions"""
+    """Returns contributions made using Toolhunt"""
     if query_args:
       limit = query_args["limit"]
       return Task.query.filter(Task.user.is_not(None)).order_by(desc(Task.timestamp)).limit(int(limit))
