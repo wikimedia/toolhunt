@@ -33,7 +33,7 @@ class ContributionsByUser(MethodView):
 
   # Ideally in the future we could introduce pagination and return all of a user's contributions
 
-@blp.route("/api/contributions/scores")
+@blp.route("/api/contributions/top-scores")
 class ContributionHighScores(MethodView):
   @blp.response(200, ScoreSchema(many=True))
   def get(self):
