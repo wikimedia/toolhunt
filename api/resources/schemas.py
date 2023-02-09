@@ -26,6 +26,9 @@ class ContributionSchema(Schema):
   tool = fields.Nested(ToolSchema())
   field_name = fields.Str(required=True)
 
+class ContributionArgSchema(Schema):
+  limit = fields.Int(required=False)
+
 class ScoreSchema(Schema):
   user = fields.Str(required=True)
   score = fields.Int(required=True)

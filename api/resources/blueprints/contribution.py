@@ -4,7 +4,7 @@ from flask_smorest import Blueprint, abort
 from sqlalchemy import desc, text
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 from api import db
-from api.resources.schemas import ContributionSchema, ScoreSchema
+from api.resources.schemas import ContributionSchema, ContributionArgSchema, ScoreSchema
 from api.models import Task
 
 blp = Blueprint("contributions", __name__, description="Get information about contributions made using Toolhunt")
@@ -12,17 +12,15 @@ blp = Blueprint("contributions", __name__, description="Get information about co
 
 @blp.route("/api/contributions/")
 class Contributions(MethodView):
+  @blp.arguments(ContributionArgSchema, location="query", required=False)
   @blp.response(200, ContributionSchema(many=True))
-  def get(self):
+  def get(self, query_args):
     """Returns all contributions"""
-    return Task.query.filter(Task.user.is_not(None))
-
-@blp.route("/api/contributions/latest")
-class ContributionsLatest(MethodView):
-  @blp.response(200, ContributionSchema(many=True))
-  def get(self):
-    """Returns the 10 most recent contributions"""
-    return Task.query.filter(Task.user.is_not(None)).order_by(desc(Task.timestamp)).limit(10)
+    if query_args:
+      limit = query_args["limit"]
+      return Task.query.filter(Task.user.is_not(None)).order_by(desc(Task.timestamp)).limit(int(limit))
+    else: 
+      return Task.query.filter(Task.user.is_not(None)).order_by(desc(Task.timestamp))
 
 @blp.route("/api/contributions/<string:user>")
 class ContributionsByUser(MethodView):
