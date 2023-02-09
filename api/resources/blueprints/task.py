@@ -12,4 +12,4 @@ blp = Blueprint("tasks", __name__, description="Fetching and updating Toolhunt t
 class TaskList(MethodView):
   @blp.response(200, TaskSchema(many=True))
   def get(self):
-    return Task.query.filter(Task.user.is_(None))
+    return Task.query.filter(Task.user.is_(None)).limit(10)
