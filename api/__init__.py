@@ -9,6 +9,7 @@ migrate = Migrate()
 
 from api.resources.blueprints.task import blp as TaskBlueprint
 from api.resources.blueprints.contribution import blp as ContributionBlueprint
+from api.resources.blueprints.field import blp as FieldBlueprint
 from api.config import config
 
 def create_app(config_name=None):
@@ -22,6 +23,7 @@ def create_app(config_name=None):
   db.init_app(app)
   api.register_blueprint(TaskBlueprint)
   api.register_blueprint(ContributionBlueprint)
+  api.register_blueprint(FieldBlueprint)
   migrate.init_app(app, db)
 
 

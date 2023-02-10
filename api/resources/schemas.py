@@ -3,7 +3,8 @@ from marshmallow import Schema, fields
 class FieldSchema(Schema):
   name = fields.Str(required=True)
   description = fields.Str(required=True)
-  input_options = fields.Str(required=False)
+  input_options = fields.Dict(required=False)
+  pattern = fields.Str(required=False)
 
 class ToolSchema(Schema):
   name = fields.Str(required=True)
