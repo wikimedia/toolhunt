@@ -25,7 +25,7 @@ services:
     volumes:
       - dbdata:/var/lib/mariadb/data/
     ports:
-      - 3306:3306
+      - 3306
 
 volumes:
   dbdata:
