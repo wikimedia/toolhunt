@@ -7,6 +7,6 @@ class Field(db.Model):
   description = db.Column(db.String(2047), nullable=False)
   tasks = db.relationship("Task", backref="field", lazy="dynamic")
   # input_type = db.Column(db.String(24), nullable=False)
-  input_options = db.Column(db.String(2047), nullable=True)
+  input_options = db.Column(db.JSON(), nullable=True)
   # constraints = db.Column(db.String, nullable=True)
-  # pattern = db.Column(db.String, nullable=True)
+  pattern = db.Column(db.String(320), nullable=True)
