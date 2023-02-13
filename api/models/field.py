@@ -2,6 +2,7 @@ from api import db
 
 class Field(db.Model):
   __tablename__ = "field"
+  __table_args__ = {"mysql_charset": "utf8mb4"}
 
   name = db.Column(db.String(80), primary_key=True, nullable=False)
   description = db.Column(db.String(2047), nullable=False)
