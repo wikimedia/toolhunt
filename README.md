@@ -58,7 +58,7 @@ The mock data includes two tools and a selection of tasks, both complete and inc
 
 - From the command line, `docker-compose exec flask-web python manage.py populate_db`
 
-This functionality is still a WIP; at the time of this commit, my tool insertion function cannot handle special characters and the program crashes as soon as it encounters one. But we still get plenty of data to play with before that happens!
+The fetch request currently draws data from the Toolhub Test Server. To get the **real** real data, open `api/jobs/get_tools.py` and switch from `TOOL_TEST_API_ENDPOINT` to `TOOL_API_ENDPOINT`
 
 ## Technologies to be Used
 
