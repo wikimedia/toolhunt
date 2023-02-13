@@ -24,8 +24,11 @@ class TaskSchema(Schema):
 class ContributionSchema(Schema):
   user = fields.Str(required=True)
   timestamp = fields.DateTime(format='%Y-%m-%dT%H:%M:%S%z', required=True)
-  tool_name = fields.Str(required=True)
+  tool = fields.Nested(ToolSchema())
   field_name = fields.Str(required=True)
+
+class ContributionArgSchema(Schema):
+  limit = fields.Int(required=False)
 
 class ScoreSchema(Schema):
   user = fields.Str(required=True)
