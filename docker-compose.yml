@@ -12,6 +12,8 @@ services:
     command: /start
     depends_on:
       - db
+    networks:
+      - toolhunt-net
 
   db:
     container_name: mariadb
@@ -26,6 +28,13 @@ services:
       - dbdata:/var/lib/mariadb/data/
     ports:
       - 3306
+    networks:
+      - toolhunt-net
 
+networks:
+  toolhunt-net:
+    name: toolhunt-net
+    driver: bridge
+    
 volumes:
   dbdata:
