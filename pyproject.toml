@@ -14,7 +14,9 @@ flask-migrate = "^4.0.2"
 mysqlclient = "^2.1.1"
 flask-smorest = "^0.40.0"
 sqlalchemy = "^2.0.0"
+python-dotenv = "^0.21.1"
 requests = "^2.28.2"
+authlib = "^1.2.0"
 
 
 [build-system]
