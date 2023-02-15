@@ -18,7 +18,7 @@ class BaseConfig:
   OPENAPI_SWAGGER_UI_URL = "https://cdn.jsdelivr.net/npm/swagger-ui-dist/"
   PROPAGATE_EXCEPTIONS = True
 
-  # OAuth demo stuff
+  # OAuth
   SECRET_KEY = os.getenv(
     "SECRET_KEY",
     default=os.urandom(128).decode("utf8", errors="ignore"),
@@ -28,15 +28,15 @@ class BaseConfig:
   TOOLHUB_CLIENT_SECRET = os.getenv("TOOLHUB_CLIENT_SECRET")
   TOOLHUB_ACCESS_TOKEN_URL = os.getenv(
     "TOOLHUB_ACCESS_TOKEN_URL",
-    default="http://web:5000/o/token/",
+    default="https://toolhub-demo.wmcloud.org/o/token/"
 )
   TOOLHUB_AUTHORIZE_URL = os.getenv(
     "TOOLHUB_AUTHORIZE_URL",
-    default="https://localhost:5000/authorize/",
+    default="https://toolhub-demo.wmcloud.org/o/authorize/"
 )
   TOOLHUB_API_BASE_URL = os.getenv(
     "TOOLHUB_API_BASE_URL",
-    default="http://web:5000/api/",
+    default="https://toolhub-demo.wmcloud.org/api/"
 )
 
 
