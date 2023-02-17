@@ -4,8 +4,8 @@ from api import db
 from app import app
 
 from api.models import Tool, Task, Field
-from api.tests.fixtures.data import tool_data, task_data, field_data
-from api.jobs import populate_db
+from tests.fixtures.data import tool_data, task_data, field_data
+from jobs import populate_db
 
 
 cli = FlaskGroup(app)
