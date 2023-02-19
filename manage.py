@@ -1,11 +1,9 @@
 from flask.cli import FlaskGroup
-
 from api import db
 from app import app
-
-from api.models import Tool, Task, Field
-from tests.fixtures.data import tool_data, task_data, field_data
-from jobs import populate_db
+from api.models import Tool, Task
+from tests.fixtures.data import tool_data, task_data
+from jobs.populate_db import insert_fields, populate_db
 
 
 cli = FlaskGroup(app)
@@ -20,8 +18,7 @@ def insert_mock_data():
 @cli.command("insert_fields")
 def run_field_insert():
     """ Inserts field data """
-    db.session.bulk_insert_mappings(Field, field_data)
-    db.session.commit()
+    insert_fields()
 
 @cli.command("populate_db")
 def run_populate_db():
