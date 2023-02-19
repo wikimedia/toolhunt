@@ -38,7 +38,7 @@ class BaseConfig:
     "TOOLHUB_API_BASE_URL",
     default="https://toolhub-demo.wmcloud.org/api/"
 )
-
+  REDIRECT_URI = os.getenv("REDIRECT_URI", default="http://localhost:8082/api/authorize")
 
 
 class DevelopmentConfig(BaseConfig):
