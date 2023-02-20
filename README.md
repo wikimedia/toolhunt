@@ -55,15 +55,19 @@ Whether you're working with the mock data or "real" data, the contents of the `f
 
 #### To insert mock data into the Database
 
-The mock data includes two tools and a selection of tasks, both complete and incomplete
+The mock data set contains three tools and a set of completed tasks. When run, the function `populate_db_test` will put the tools through the insertion process and auto-generate tasks, as it would with "real" data.
 
-- From the command line, `docker-compose exec flask-web python manage.py insert_mock_data`
+The results will appear on the command line. This command may be run multiple times; observe the command line messages to see what changes when a tool and/or task is already present in the DB.
 
-#### To insert "real" data into the Database
+The set of completed tasks will allow us to test that the high scores, user contributions, and latest contributions are returning correctly.
 
-- From the command line, `docker-compose exec flask-web python manage.py populate_db`
+- From the command line, `docker-compose exec flask-web python manage.py populate_db_test`
 
-The fetch request currently draws data from the Toolhub Test Server. To get the **real** real data, open `api/jobs/get_tools.py` and switch from `TOOL_TEST_API_ENDPOINT` to `TOOL_API_ENDPOINT`
+#### To insert a full data set into the Database
+
+- From the command line, `docker-compose exec flask-web python manage.py populate_db_initial`
+
+While in development mode, this fetch request draws data from the Toolhub Test Server. It can be run prior to or following `populate_db_test`.
 
 ## Technologies to be Used
 
