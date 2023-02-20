@@ -1,13 +1,18 @@
+import json
 import requests
 from api import db
+from app import app
 from sqlalchemy import select, text, insert
-from tests.fixtures.data import field_data
 from api.models import Field, Task, Tool
+
+BASE_DIR = app.config["BASE_DIR"]
 
 def insert_fields():
   """ Insert data about annotations fields into the DB """
-  db.session.bulk_insert_mappings(Field, field_data)
-  db.session.commit()
+  with open(f'{BASE_DIR}/tests/fixtures/fields.json') as fields:
+    field_data = json.load(fields)
+    db.session.bulk_insert_mappings(Field, field_data)
+    db.session.commit()
 
 def check_for_entry(tool):
   """ Receives a dict containing tool information and checks to see if it exists in the DB """

@@ -1,0 +1,172 @@
+[
+  {
+    "name": "wikidata_qid",
+    "description": "Wikidata item ID for the tool.",
+    "pattern": "^Q\\d+$"
+  },
+  {
+    "name": "audiences",
+    "description": "Who is the intended user of the tool?",
+    "input_options": {
+      "admin": "Admins",
+      "organizer": "Organizers and program coordinators",
+      "editor": "Editors and content contributors",
+      "reader": "Readers and content consumers",
+      "researcher": "Researchers",
+      "developer": "Developers"
+    }
+  },
+  {
+    "name": "content_types",
+    "description": "With what type of content or data does the tool interact?",
+    "input_options": {
+      "article": "Articles",
+      "audio": "Audio",
+      "book": "Books",
+      "data::bibliography": "Bibliographic data",
+      "data::category": "Categories or labels",
+      "data::diff": "Diffs and revision data",
+      "data::event": "Event data",
+      "data::geography": "Geographic data",
+      "data::linguistic": "Linguistic data",
+      "data::page_metadata": "Page metadata",
+      "data::structured": "Structured data",
+      "data::user": "User data",
+      "discussion": "Discussions",
+      "draft": "Drafts",
+      "email": "Emails",
+      "image": "Images",
+      "link": "Links",
+      "list": "Lists",
+      "log": "Logs",
+      "map": "Maps",
+      "reference": "References",
+      "software": "Software or code",
+      "template": "Templates",
+      "video": "Videos",
+      "watchlist": "Watchlists",
+      "webpage": "Webpages",
+      "wikitext": "Wikitext"
+    }
+  },
+  {
+    "name": "tasks",
+    "description": "What type of task does the tool help with?",
+    "input_options": {
+      "analysis": "Analysis",
+      "categorizing": "Categorizing and tagging",
+      "citing": "Citing and referencing",
+      "communication": "Communication and supporting users",
+      "converting": "Converting and formatting content",
+      "creating": "Creating content",
+      "deleting": "Deleting and reverting",
+      "disambiguation": "Disambiguation",
+      "downloading": "Downloading or reusing content",
+      "editing": "Editing or updating content",
+      "event_planning": "Event and contest planning",
+      "tools": "Hosting and maintaining tools",
+      "policy_violation": "Identifying policy violations",
+      "spam": "Identifying spam",
+      "vandalism": "Identifying vandalism",
+      "ranking": "Listing and ranking",
+      "merging": "Merging content",
+      "migrating": "Migrating content",
+      "patrolling": "Patrolling recent changes",
+      "project_management": "Project management and reporting",
+      "reading": "Reading",
+      "recommending": "Recommending content",
+      "translating": "Translating and localizing",
+      "uploading": "Uploading or importing",
+      "user_management": "User management",
+      "warnings": "Warning users"
+    }
+  },
+  {
+    "name": "subject_domains",
+    "description": "Is the tool targeted at helping in a specific type of wiki project or topic area?",
+    "input_options": {
+      "biography": "Biography",
+      "cultural": "Cultural heritage",
+      "education": "Education",
+      "geography": "Geography and mapping",
+      "glam": "GLAM",
+      "history": "History",
+      "language": "Language and internationalization",
+      "outreach": "Outreach",
+      "science": "Science"
+    }
+  },
+  {
+    "name": "deprecated",
+    "description": "If true, the use of this tool is officially discouraged. The `replaced_by` parameter can be used to define a replacement."
+  },
+  {
+    "name": "replaced_by",
+    "description": "If this tool is deprecated, this parameter should be used to link to the replacement tool."
+  },
+  {
+    "name": "experimental",
+    "description": "If true, this tool is unstable and can change or go offline at any time."
+  },
+  {
+    "name": "for_wikis",
+    "description": "A string or array of strings describing the wiki(s) this tool can be used on. Use hostnames such as `zh.wiktionary.org`. Use asterisks as wildcards. For example, `*.wikisource.org` means 'this tool works on all Wikisource wikis.' `*` means 'this works on all wikis, including Wikimedia wikis.'"
+  },
+  {
+    "name": "icon",
+    "description": "A link to a Wikimedia Commons file description page for an icon that depicts the tool.",
+    "pattern": "^https://commons\\.wikimedia\\.org/wiki/File:.+\\..+$"
+  },
+  {
+    "name": "available_ui_languages",
+    "description": "The language(s) the tool's interface has been translated into. Use ISO 639 language codes like `zh` and `scn`. If not defined it is assumed the tool is only available in English."
+  },
+  {
+    "name": "tool_type",
+    "description": "The manner in which the tool is used. Select one from the list of options.",
+    "input_options": {
+      "web app": "Web app",
+      "desktop app": "Desktop app",
+      "bot": "Bot",
+      "gadget": "Gadget",
+      "user script": "User script",
+      "command line tool": "Command line tool",
+      "coding framework": "Coding framework",
+      "lua module": "LUA module",
+      "template": "Template",
+      "other": "Other"
+    }
+  },
+  {
+    "name": "repository",
+    "description": "A link to the repository where the tool code is hosted."
+  },
+  {
+    "name": "api_url",
+    "description": "A link to the tool's API, if available."
+  },
+  {
+    "name": "developer_docs_url",
+    "description": "A link to the tool's developer documentation, if available."
+  },
+  {
+    "name": "user_docs_url",
+    "description": "A link to the tool's user documentation, if available."
+  },
+  {
+    "name": "feedback_url",
+    "description": "A link to a location where the tool's user can leave feedback."
+  },
+  {
+    "name": "privacy_policy_url",
+    "description": "A link to the tool's privacy policy, if available."
+  },
+  {
+    "name": "translate_url",
+    "description": "A link to the tool's translation interface."
+  },
+  {
+    "name": "bugtracker_url",
+    "description": "A link to the tool's bug tracker on GitHub, Bitbucket, Phabricator, etc."
+  }
+]
