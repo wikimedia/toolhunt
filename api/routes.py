@@ -3,8 +3,8 @@ from flask.views import MethodView
 from flask_smorest import Blueprint
 from sqlalchemy import desc, text
 from api import db
-from api.schemas import *
-from api.models import *
+from api.schemas import ContributionArgSchema, ContributionSchema, FieldSchema, ScoreSchema, TaskSchema
+from api.models import Field, Task
 
 contributions = Blueprint("contributions", __name__, description="Get information about contributions made using Toolhunt")
 
