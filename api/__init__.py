@@ -1,5 +1,4 @@
 import os
-
 from flask import Flask
 from flask_migrate import Migrate
 from flask_smorest import Api 
@@ -7,9 +6,7 @@ from flask_sqlalchemy import SQLAlchemy
 db = SQLAlchemy()
 migrate = Migrate()
 
-from api.resources.blueprints.task import blp as TaskBlueprint
-from api.resources.blueprints.contribution import blp as ContributionBlueprint
-from api.resources.blueprints.field import blp as FieldBlueprint
+from api.routes import fields, contributions, tasks
 from api.config import config
 
 def create_app(config_name=None):
@@ -21,9 +18,9 @@ def create_app(config_name=None):
 
   api = Api(app)
   db.init_app(app)
-  api.register_blueprint(TaskBlueprint)
-  api.register_blueprint(ContributionBlueprint)
-  api.register_blueprint(FieldBlueprint)
+  api.register_blueprint(tasks)
+  api.register_blueprint(contributions)
+  api.register_blueprint(fields)
   migrate.init_app(app, db)
 
 

@@ -1,7 +1,13 @@
+import requests
 from api import db
-from api.models import Task, Tool
-from sqlalchemy import select, text, insert, delete
+from sqlalchemy import select, text, insert
+from tests.fixtures.data import field_data
+from api.models import Field, Task, Tool
 
+def insert_fields():
+  """ Insert data about annotations fields into the DB """
+  db.session.bulk_insert_mappings(Field, field_data)
+  db.session.commit()
 
 def check_for_entry(tool):
   """ Receives a dict containing tool information and checks to see if it exists in the DB """
@@ -13,7 +19,6 @@ def check_for_entry(tool):
   else:
     add_tool_entry(tool)
   check_deprecation(tool)
-
 
 def add_tool_entry(tool):
   """ Receives a dict containing tool information and adds an entry to the tool table """
@@ -114,3 +119,38 @@ def add_tasks(fields, tool_name):
       db.session.execute(insert(Task), task)
       db.session.commit() 
       print(f"Added {field} task for {tool_name}")
+
+
+
+
+REQUEST_LABEL = 'Toolhunt API'
+USER_INFO = 'User: NicoleLBee'
+headers = {'User-Agent': f'{REQUEST_LABEL} - {USER_INFO}'}
+TOOL_API_ENDPOINT = "https://toolhub.wikimedia.org/api/tools/"
+TOOL_TEST_API_ENDPOINT = "https://toolhub-demo.wmcloud.org/api/tools/"
+
+def get_tools():
+  """ Getting data on all Toolhub tools """
+  url = f'{TOOL_TEST_API_ENDPOINT}'
+  response = requests.get(url, headers=headers)
+  if response.status_code == 200:
+    api_response = response.json()
+    tools = api_response["results"]
+    while api_response["next"]:
+      api_response = requests.get(api_response["next"], headers=headers).json()
+      tools.extend(api_response["results"])
+    return tools
+
+def get_single_tool(tool):
+  """ Gets data on a single tool """
+  url = f'{TOOL_TEST_API_ENDPOINT}{tool}'
+  response = requests.get(url, headers=headers)
+  if response.status_code == 200:
+    api_response = response.json()
+    return api_response
+  
+def populate_db():
+  tools = get_tools()
+  for tool in tools:
+    check_for_entry(tool)
+  return "All done."

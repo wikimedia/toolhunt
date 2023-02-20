@@ -7,17 +7,9 @@ app = create_app()
 oauth = OAuth(app)
 oauth.register(name="toolhub")
 
-# @app.route("/")
-# def index():
-#   """Home screen."""
-#   ctx = {
-#       "profile": None,
-#   }
-#   if "token" in flask.session:
-#     resp = oauth.toolhub.get("user/", token=flask.session["token"])
-#     resp.raise_for_status()
-#     ctx["profile"] = resp.json()
-#   return flask.render_template("home.html", **ctx)
+@app.route("/")
+def index():
+  return "Hello world"
 
 @app.route("/api/login")
 def login():
