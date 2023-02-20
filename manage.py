@@ -1,30 +1,35 @@
+import json
 from flask.cli import FlaskGroup
 from api import db
 from app import app
-from api.models import Tool, Task
-from tests.fixtures.data import tool_data, task_data
-from jobs.populate_db import insert_fields, populate_db
+from api.models import Task
+from jobs.populate_db import insert_fields, get_tools, populate_db
 
 
 cli = FlaskGroup(app)
-
-@cli.command("insert_mock_data")
-def insert_mock_data():
-    """ Inserts the mock tasks and tools """
-    db.session.bulk_insert_mappings(Tool, tool_data)
-    db.session.bulk_insert_mappings(Task, task_data)
-    db.session.commit()
 
 @cli.command("insert_fields")
 def run_field_insert():
     """ Inserts field data """
     insert_fields()
 
-@cli.command("populate_db")
+@cli.command("populate_db_initial")
 def run_populate_db():
     """ Fetches and inserts tool data from Toolhub """
-    populate_db()
+    tool_data = get_tools()
+    populate_db(tool_data)
 
+@cli.command("populate_db_test")
+def run_populate_db_test():
+    """ Inserts the test tool and task data into db """
+    BASE_DIR = app.config["BASE_DIR"]
+    with open(f'{BASE_DIR}/tests/fixtures/data.json') as data:
+        test_data = json.load(data)
+        test_tool_data = test_data[0]["tool_data"]
+        populate_db(test_tool_data)
+        test_task_data = test_data[1]["task_data"]
+        db.session.bulk_insert_mappings(Task, test_task_data)
+        db.session.commit()
 
 if __name__ == "__main__":
     cli()

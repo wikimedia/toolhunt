@@ -154,8 +154,8 @@ def get_single_tool(tool):
     api_response = response.json()
     return api_response
   
-def populate_db():
-  tools = get_tools()
-  for tool in tools:
+def populate_db(data_set):
+  """ Accepts a list of dicts and runs each dict through the insertion process """
+  for tool in data_set:
     check_for_entry(tool)
   return "All done."
