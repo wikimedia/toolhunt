@@ -11,19 +11,18 @@ oauth.register(name="toolhub")
 def index():
   return "Hello world"
 
-@app.route("/login")
+@app.route("/api/login")
 def login():
     """Initiate OAuth handshake with Toolhub."""
-    redirect_uri = flask.url_for("authorize", _external=True)
-    return oauth.toolhub.authorize_redirect(redirect_uri)
+    return oauth.toolhub.authorize_redirect(app.config["REDIRECT_URI"])
 
-@app.route("/authorize")
+@app.route("/api/authorize")
 def authorize():
     """Handle OAuth callback from Toolhub."""
     flask.session["token"] = oauth.toolhub.authorize_access_token()
     return flask.redirect("/")
 
-@app.route("/logout")
+@app.route("/api/logout")
 def logout():
     """Clear session and redirect to /."""
     flask.session.clear()
