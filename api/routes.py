@@ -1,10 +1,12 @@
+import flask
 import datetime
+import requests
 from flask import jsonify
 from flask.views import MethodView
 from flask_smorest import Blueprint
 from sqlalchemy import desc, text
 from api import db
-from api.schemas import ContributionSchema, ContributionLimitSchema,  FieldSchema, ScoreSchema, ScoreLimitSchema, TaskSchema
+from api.schemas import ContributionLimitSchema, ContributionSchema, FieldSchema, ScoreSchema, ScoreLimitSchema, TaskSchema, TaskCompleteSchema
 from api.models import Field, Task
 
 contributions = Blueprint("contributions", __name__, description="Get information about contributions made using Toolhunt")
@@ -79,3 +81,69 @@ class TaskList(MethodView):
   @tasks.response(200, TaskSchema(many=True))
   def get(self):
     return Task.query.filter(Task.user.is_(None)).limit(10)
+  
+@tasks.route("/api/tasks/<string:task_id>")
+class TaskById(MethodView):
+  @tasks.response(200, TaskSchema)
+  def get(self, task_id):
+    task = Task.query.get_or_404(task_id)
+    return task
+  
+  @tasks.arguments(TaskCompleteSchema)
+  @tasks.response(200)
+  def put(self, task_data, task_id):
+    task = Task.query.get_or_404(task_id)
+    # Want to make sure we've got the right one.
+    if task and task.tool_name == task_data["tool"] and task.field_name == task_data["field"]:
+      if task.user != None:
+        return "This task has already been completed."
+      else:
+        # I'm not sure how to best organize this.  It's a mess right now.
+        field = task_data["field"]
+        tool = task_data["tool"]
+        value = task_data["value"]
+        username = get_current_user()
+        comment = f'Updated {field} using Toolhunt'
+        data = {}
+        data[field] = value
+        data["comment"] = comment
+        result = put_to_toolhub(tool, data)
+        if result == 200:
+          # If the insertion into toolhub was a success, we can update our records
+          task.user = username
+          task.timestamp = datetime.datetime.now(datetime.timezone.utc)
+          db.session.add(task)
+          try:
+            db.session.commit()
+            return f'{field} successfully updated for tool {tool}'
+          except:
+            return "Updating our db didn't work"
+        else:
+          return "Inserting the data into Toolhub didn't work" 
+    else:
+      return "The data doesn't match the specified task."
+
+# This will go in its own file, too
+def get_current_user():
+  """ Make a call to toolhub to get the username """
+  # I'm sure we can carry the username over from the front end
+  # This is just what I'm doing for now
+  from app import oauth
+  if "token" in flask.session:
+    resp = oauth.toolhub.get("user/", token=flask.session["token"])
+    resp.raise_for_status()
+    profile = resp.json()
+    username = profile["username"]
+    return username
+  else:
+    return "User must be logged in to update a tool"
+  
+def put_to_toolhub(tool, data):
+  """ Takes data entered in the frontend and makes a PUT request to toolhub """
+  TOOL_TEST_API_ENDPOINT = "https://toolhub-demo.wmcloud.org/api/tools/"
+  url = f'{TOOL_TEST_API_ENDPOINT}{tool}/annotations/'
+  print(url)
+  header = {"Authorization": f'Bearer {flask.session["token"]["access_token"]}'}
+  response = requests.put(url, data=data, headers=header)
+  r = response.status_code
+  return r

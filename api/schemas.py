@@ -21,6 +21,11 @@ class TaskSchema(Schema):
   user = fields.Str(required=False)
   timestamp = fields.DateTime(format='%Y-%m-%dT%H:%M:%S%z', required=False)
 
+class TaskCompleteSchema(Schema):
+  tool = fields.Str(required=True)
+  field = fields.Str(required=True)
+  value = fields.Str(required=True)
+
 class ContributionSchema(Schema):
   user = fields.Str(required=True)
   timestamp = fields.DateTime(format='%Y-%m-%dT%H:%M:%S%z', required=True)
