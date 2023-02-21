@@ -102,43 +102,48 @@ class TaskById(MethodView):
     if task and task.tool_name == task_data["tool"] and task.field_name == task_data["field"]:
       if task.user != None:
         return "This task has already been completed."
-      else:
-        field = task_data["field"]
+      elif flask.session and flask.session["token"]:
         tool = task_data["tool"]
-        value = task_data["value"]
-        username = get_current_user()
-        comment = f'Updated {field} using Toolhunt'
-        data = {}
-        data[field] = value
-        data["comment"] = comment
-        result = put_to_toolhub(tool, data)
+        data_obj = build_request(task_data)
+        result = put_to_toolhub(tool, data_obj)
         if result == 200:
-          # If the insertion into toolhub was a success, we can update our records
+          username = get_current_user()
           task.user = username
           task.timestamp = datetime.datetime.now(datetime.timezone.utc)
           db.session.add(task)
           try:
             db.session.commit()
-            return f'{field} successfully updated for tool {tool}'
+            return f'{task_data["field"]} successfully updated for {tool}.'
           except:
-            return "Updating our db didn't work"
+            return "Updating our db didn't work."
         else:
-          return "Inserting the data into Toolhub didn't work" 
+          return "Inserting the data into Toolhub didn't work." 
+      else:
+        return "User must be logged in to update a tool."
     else:
       return "The data doesn't match the specified task."
 
+def build_request(task_data):
+  """Take data and return an object to PUT to Toolhub"""
+  field = task_data["field"]
+  value = task_data["value"]
+  comment = f'Updated {field} using Toolhunt'
+  data = {}
+  data[field] = value
+  data["comment"] = comment
+  return data
 
 def get_current_user():
   """Get the username of currently logged-in user."""
   from app import oauth
-  if "token" in flask.session:
+  try:
     resp = oauth.toolhub.get("user/", token=flask.session["token"])
     resp.raise_for_status()
     profile = resp.json()
     username = profile["username"]
     return username
-  else:
-    return "User must be logged in to update a tool"
+  except:
+    return "Something has gone wrong."
   
 def put_to_toolhub(tool, data):
   """Take request data from the frontend and make a PUT request to Toolhub."""
