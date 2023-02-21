@@ -6,7 +6,7 @@ from flask_sqlalchemy import SQLAlchemy
 db = SQLAlchemy()
 migrate = Migrate()
 
-from api.routes import fields, contributions, tasks
+from api.routes import fields, contributions, tasks, user
 from api.config import config
 
 def create_app(config_name=None):
@@ -21,6 +21,7 @@ def create_app(config_name=None):
   api.register_blueprint(tasks)
   api.register_blueprint(contributions)
   api.register_blueprint(fields)
+  api.register_blueprint(user)
   migrate.init_app(app, db)
 
 

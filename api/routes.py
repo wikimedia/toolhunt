@@ -135,8 +135,9 @@ def build_request(task_data):
 
 def get_current_user():
   """Get the username of currently logged-in user."""
-  from app import oauth
   try:
+    # Importing the oauth early results in an error
+    from app import oauth
     resp = oauth.toolhub.get("user/", token=flask.session["token"])
     resp.raise_for_status()
     profile = resp.json()
@@ -153,3 +154,21 @@ def put_to_toolhub(tool, data):
   response = requests.put(url, data=data, headers=header)
   r = response.status_code
   return r
+
+user = Blueprint("user", __name__, description="Get information about the currently logged-in user.")
+
+@user.route("/api/user")
+class CurrentUser(MethodView):
+  @tasks.response(200)
+  def get(self):
+    """Get the username of currently logged-in user."""
+    try:
+      # Importing the oauth early results in an error
+      from app import oauth
+      resp = oauth.toolhub.get("user/", token=flask.session["token"])
+      resp.raise_for_status()
+      profile = resp.json()
+      username = profile["username"]
+      return username
+    except:
+      return "No user is currently logged in."
