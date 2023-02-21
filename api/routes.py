@@ -16,7 +16,7 @@ class Contributions(MethodView):
   @contributions.arguments(ContributionLimitSchema, location="query", required=False)
   @contributions.response(200, ContributionSchema(many=True))
   def get(self, query_args):
-    """Returns contributions made using Toolhunt"""
+    """Return contributions made using Toolhunt."""
     if query_args:
       limit = query_args["limit"]
       return Task.query.filter(Task.user.is_not(None)).order_by(desc(Task.timestamp)).limit(int(limit))
@@ -27,7 +27,7 @@ class Contributions(MethodView):
 class ContributionsByUser(MethodView):
   @contributions.response(200, ContributionSchema(many=True))
   def get(self, user):
-    """Returns contributions by user"""
+    """Return contributions by user."""
     # Ideally in the future we could introduce pagination and return all of a user's contributions
     return Task.query.filter(Task.user == user).order_by(desc(Task.timestamp)).limit(10)
 
@@ -36,7 +36,7 @@ class ContributionHighScores(MethodView):
   @contributions.arguments(ScoreLimitSchema, location="query", required=False)
   @contributions.response(200, ScoreSchema(many=True))
   def get(self, query_args):
-    """Returns the most prolific Toolhunters and their scores"""
+    """Return the most prolific Toolhunters and their scores."""
     if query_args:
       today = datetime.datetime.now(datetime.timezone.utc)
       day_count = query_args["since"]
@@ -51,6 +51,7 @@ class ContributionHighScores(MethodView):
       return jsonify(scores)
 
 def get_scores(scores_query):
+    """Insert score data into a list of dicts and return."""
     results = db.session.execute(scores_query)
     scores = []
     for row in results:
@@ -65,12 +66,14 @@ fields = Blueprint("fields", __name__, description="Retrieving information about
 class FieldList(MethodView):
   @fields.response(200, FieldSchema(many=True))
   def get(self):
+    "Return all annotations field data."
     return Field.query.all()
 
 @fields.route("/api/fields/<string:name>")
 class FieldInformation(MethodView):
   @fields.response(200, FieldSchema)
   def get(self, name):
+    "Return data about a specific annotations field."
     return Field.query.get_or_404(name)
   
 
@@ -80,25 +83,26 @@ tasks = Blueprint("tasks", __name__, description="Fetching and updating Toolhunt
 class TaskList(MethodView):
   @tasks.response(200, TaskSchema(many=True))
   def get(self):
+    "Return a bundle of 10 incomplete tasks."
     return Task.query.filter(Task.user.is_(None)).limit(10)
   
 @tasks.route("/api/tasks/<string:task_id>")
 class TaskById(MethodView):
   @tasks.response(200, TaskSchema)
   def get(self, task_id):
+    "Return information about a specific task."
     task = Task.query.get_or_404(task_id)
     return task
   
   @tasks.arguments(TaskCompleteSchema)
   @tasks.response(200)
   def put(self, task_data, task_id):
+    """Update a tool record on Toolhub."""
     task = Task.query.get_or_404(task_id)
-    # Want to make sure we've got the right one.
     if task and task.tool_name == task_data["tool"] and task.field_name == task_data["field"]:
       if task.user != None:
         return "This task has already been completed."
       else:
-        # I'm not sure how to best organize this.  It's a mess right now.
         field = task_data["field"]
         tool = task_data["tool"]
         value = task_data["value"]
@@ -123,11 +127,9 @@ class TaskById(MethodView):
     else:
       return "The data doesn't match the specified task."
 
-# This will go in its own file, too
+
 def get_current_user():
-  """ Make a call to toolhub to get the username """
-  # I'm sure we can carry the username over from the front end
-  # This is just what I'm doing for now
+  """Get the username of currently logged-in user."""
   from app import oauth
   if "token" in flask.session:
     resp = oauth.toolhub.get("user/", token=flask.session["token"])
@@ -139,10 +141,9 @@ def get_current_user():
     return "User must be logged in to update a tool"
   
 def put_to_toolhub(tool, data):
-  """ Takes data entered in the frontend and makes a PUT request to toolhub """
+  """Take request data from the frontend and make a PUT request to Toolhub."""
   TOOL_TEST_API_ENDPOINT = "https://toolhub-demo.wmcloud.org/api/tools/"
   url = f'{TOOL_TEST_API_ENDPOINT}{tool}/annotations/'
-  print(url)
   header = {"Authorization": f'Bearer {flask.session["token"]["access_token"]}'}
   response = requests.put(url, data=data, headers=header)
   r = response.status_code
