@@ -135,16 +135,29 @@ def build_request(task_data):
 
 def get_current_user():
   """Get the username of currently logged-in user."""
-  try:
-    # Importing the oauth early results in an error
-    from app import oauth
-    resp = oauth.toolhub.get("user/", token=flask.session["token"])
-    resp.raise_for_status()
-    profile = resp.json()
-    username = profile["username"]
-    return username
-  except:
+  # Importing the oauth early results in an error 
+  # Will fix this once I've dealt with T330263
+  from app import oauth
+  if not flask.session:
     abort(401, message="No user is currently logged in.")
+  else: 
+      try: 
+        resp = oauth.toolhub.get("user/", token=flask.session["token"])
+        print(resp, "This is from the function")
+        resp.raise_for_status()
+        profile = resp.json()
+        username = profile["username"]
+        return username
+      except requests.exceptions.HTTPError as err:
+        print(err)
+        abort(401, message="User authorization failed.")
+      except requests.exceptions.ConnectionError as err:
+        print(err)
+        abort(503, message="Server connection failed.  Please try again.")
+      except requests.exceptions.RequestException as err:
+        print(err)
+        abort(501, message="Server encountered an unexpected error.")
+
   
 def put_to_toolhub(tool, data):
   """Take request data from the frontend and make a PUT request to Toolhub."""
@@ -162,14 +175,9 @@ class CurrentUser(MethodView):
   @tasks.response(200, UserSchema)
   def get(self):
     """Get the username of currently logged-in user."""
-    try:
-      # Importing the oauth early results in an error
-      from app import oauth
-      resp = oauth.toolhub.get("user/", token=flask.session["token"])
-      resp.raise_for_status()
-      profile = resp.json()
-      username = profile["username"]
-      response = {"username": username}
+    response = get_current_user()
+    if type(response) == str:
+      username = {"username": response}
+      return jsonify(username)
+    else:
       return jsonify(response)
-    except:
-      abort(401, message="No user is currently logged in.")
