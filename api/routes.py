@@ -1,7 +1,6 @@
 import flask
 import datetime
 import requests
-from flask import jsonify
 from flask.views import MethodView
 from flask_smorest import Blueprint, abort
 from sqlalchemy import desc, text
@@ -44,11 +43,11 @@ class ContributionHighScores(MethodView):
       print(end_date)
       scores_query = text("SELECT DISTINCT user, COUNT(*) AS 'score' FROM task WHERE user IS NOT NULL AND timestamp >= :date GROUP BY user ORDER BY 2 DESC LIMIT 30").bindparams(date=end_date)
       scores = get_scores(scores_query)
-      return jsonify(scores)
+      return scores
     else: 
       scores_query = text("SELECT DISTINCT user, COUNT(*) AS 'score' FROM task WHERE user IS NOT NULL GROUP BY user ORDER BY 2 DESC LIMIT 30")
       scores = get_scores(scores_query)
-      return jsonify(scores)
+      return scores
 
 def get_scores(scores_query):
     """Insert score data into a list of dicts and return."""
@@ -178,6 +177,6 @@ class CurrentUser(MethodView):
     response = get_current_user()
     if type(response) == str:
       username = {"username": response}
-      return jsonify(username)
+      return username
     else:
-      return jsonify(response)
+      return response
