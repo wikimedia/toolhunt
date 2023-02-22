@@ -1,11 +1,8 @@
 import flask
-from authlib.integrations.flask_client import OAuth
 from api import create_app
+from api import oauth
 
 app = create_app()
-
-oauth = OAuth(app)
-oauth.register(name="toolhub")
 
 @app.route("/")
 def index():
