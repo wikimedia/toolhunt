@@ -2,6 +2,91 @@
   {
     "tool_data": [
       {
+        "name": "testy-mc-tool-type",
+        "title": "Testy McTool-Type",
+        "description": "I need a tool_type task and I need it now!",
+        "url": "https://www.example.com",
+        "keywords": [],
+        "author": [],
+        "repository": "https://www.example.com",
+        "subtitle": null,
+        "openhub_id": null,
+        "url_alternates": [],
+        "bot_username": null,
+        "deprecated": false,
+        "replaced_by": null,
+        "experimental": false,
+        "for_wikis": [],
+        "icon": null,
+        "license": null,
+        "sponsor": [],
+        "available_ui_languages": [],
+        "technology_used": [],
+        "tool_type": null,
+        "api_url": null,
+        "developer_docs_url": [],
+        "user_docs_url": [
+          {
+            "url": "https://www.example.com",
+            "language": "en"
+          }
+        ],
+        "feedback_url": [],
+        "privacy_policy_url": [],
+        "translate_url": null,
+        "bugtracker_url": "https://www.example.com",
+        "annotations": {
+          "wikidata_qid": "Q1337",
+          "audiences": ["developer"],
+          "content_types": ["data::diff"],
+          "tasks": ["analysis"],
+          "subject_domains": ["outreach"],
+          "deprecated": false,
+          "replaced_by": null,
+          "experimental": false,
+          "for_wikis": ["*"],
+          "icon": "https://commons.wikimedia.org/wiki/File:Pywikibot_MW_gear_icon.svg",
+          "available_ui_languages": ["en"],
+          "tool_type": null,
+          "repository": null,
+          "api_url": "https://www.example.com",
+          "developer_docs_url": [
+            {
+              "url": "https://www.example.com",
+              "language": "en"
+            }
+          ],
+          "user_docs_url": [],
+          "feedback_url": [
+            {
+              "url": "https://www.example.com",
+              "language": "en"
+            }
+          ],
+          "privacy_policy_url": [
+            {
+              "url": "https://www.example.com",
+              "language": "en"
+            }
+          ],
+          "translate_url": "https://www.example.com",
+          "bugtracker_url": null
+        },
+        "_schema": null,
+        "_language": "en",
+        "origin": "api",
+        "created_by": {
+          "id": 72,
+          "username": "NicoleLBee"
+        },
+        "created_date": "2023-02-22T07:26:48.564818Z",
+        "modified_by": {
+          "id": 72,
+          "username": "NicoleLBee"
+        },
+        "modified_date": "2023-02-22T07:28:56.470547Z"
+      },
+      {
         "name": "testy-mc-test-tool",
         "title": "Testy McTest-Tool",
         "description": "A tool for testing",
@@ -166,7 +251,7 @@
         "translate_url": null,
         "bugtracker_url": "https://www.example.com",
         "annotations": {
-          "wikidata_qid": null,
+          "wikidata_qid": "Q1337",
           "audiences": ["developer"],
           "content_types": ["data::diff"],
           "tasks": ["analysis"],
