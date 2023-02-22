@@ -1,12 +1,11 @@
 import flask
 import datetime
 import requests
-from flask import jsonify
 from flask.views import MethodView
-from flask_smorest import Blueprint
+from flask_smorest import Blueprint, abort
 from sqlalchemy import desc, text
 from api import db
-from api.schemas import ContributionLimitSchema, ContributionSchema, FieldSchema, ScoreSchema, ScoreLimitSchema, TaskSchema, TaskCompleteSchema
+from api.schemas import ContributionLimitSchema, ContributionSchema, FieldSchema, ScoreSchema, ScoreLimitSchema, TaskSchema, TaskCompleteSchema, UserSchema
 from api.models import Field, Task
 
 contributions = Blueprint("contributions", __name__, description="Get information about contributions made using Toolhunt")
@@ -44,11 +43,11 @@ class ContributionHighScores(MethodView):
       print(end_date)
       scores_query = text("SELECT DISTINCT user, COUNT(*) AS 'score' FROM task WHERE user IS NOT NULL AND timestamp >= :date GROUP BY user ORDER BY 2 DESC LIMIT 30").bindparams(date=end_date)
       scores = get_scores(scores_query)
-      return jsonify(scores)
+      return scores
     else: 
       scores_query = text("SELECT DISTINCT user, COUNT(*) AS 'score' FROM task WHERE user IS NOT NULL GROUP BY user ORDER BY 2 DESC LIMIT 30")
       scores = get_scores(scores_query)
-      return jsonify(scores)
+      return scores
 
 def get_scores(scores_query):
     """Insert score data into a list of dicts and return."""
@@ -95,7 +94,7 @@ class TaskById(MethodView):
     return task
   
   @tasks.arguments(TaskCompleteSchema)
-  @tasks.response(200)
+  @tasks.response(201)
   def put(self, task_data, task_id):
     """Update a tool record on Toolhub."""
     task = Task.query.get_or_404(task_id)
@@ -135,15 +134,29 @@ def build_request(task_data):
 
 def get_current_user():
   """Get the username of currently logged-in user."""
+  # Importing the oauth early results in an error 
+  # Will fix this once I've dealt with T330263
   from app import oauth
-  try:
-    resp = oauth.toolhub.get("user/", token=flask.session["token"])
-    resp.raise_for_status()
-    profile = resp.json()
-    username = profile["username"]
-    return username
-  except:
-    return "Something has gone wrong."
+  if not flask.session:
+    abort(401, message="No user is currently logged in.")
+  else: 
+      try: 
+        resp = oauth.toolhub.get("user/", token=flask.session["token"])
+        print(resp, "This is from the function")
+        resp.raise_for_status()
+        profile = resp.json()
+        username = profile["username"]
+        return username
+      except requests.exceptions.HTTPError as err:
+        print(err)
+        abort(401, message="User authorization failed.")
+      except requests.exceptions.ConnectionError as err:
+        print(err)
+        abort(503, message="Server connection failed.  Please try again.")
+      except requests.exceptions.RequestException as err:
+        print(err)
+        abort(501, message="Server encountered an unexpected error.")
+
   
 def put_to_toolhub(tool, data):
   """Take request data from the frontend and make a PUT request to Toolhub."""
@@ -153,3 +166,17 @@ def put_to_toolhub(tool, data):
   response = requests.put(url, data=data, headers=header)
   r = response.status_code
   return r
+
+user = Blueprint("user", __name__, description="Get information about the currently logged-in user.")
+
+@user.route("/api/user")
+class CurrentUser(MethodView):
+  @tasks.response(200, UserSchema)
+  def get(self):
+    """Get the username of currently logged-in user."""
+    response = get_current_user()
+    if type(response) == str:
+      username = {"username": response}
+      return username
+    else:
+      return response
