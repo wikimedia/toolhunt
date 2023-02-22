@@ -12,7 +12,7 @@ This is an [Outreachy](https://www.outreachy.org/) Internship project.
 
 ## Issue Tracker
 
-This project uses [Phabricator](https://phabricator.wikimedia.org/project/board/6283/) to track issues and we would advice against using Github issue traking for bugs
+This project uses [Phabricator](https://phabricator.wikimedia.org/project/board/6283/) to track issues.
 
 ## Documentation
 
@@ -25,7 +25,18 @@ Note that, as of the latest build, access to the API documentation and backend f
 In other words, to do much of anything with this half of the project, you **must** have both front- and backend components running in Docker containers.
 
 - Clone this repo to your machine with the command `git clone https://github.com/wikimedia/toolhunt.git`
+
 - Clone the frontend ui repo with `git clone https://github.com/wikimedia/toolhunt.git`
+
+In order to authenticate successfully, you must register your local version of the app with the [Toolhub Demo Server](https://toolhub-demo.wmcloud.org/).
+
+- To register, go to [Developer Settings](https://toolhub-demo.wmcloud.org/developer-settings?tab=oauth-register) and complete the form.
+
+- Set `http://localhost:8082/api/authorize` as the Authorization Callback URL.
+
+- Create an `.env` file in the root directory of your toolhunt repo and add `TOOLHUB_CLIENT_ID` and `TOOLHUB_CLIENT_SECRET` (set their values to be whatever you received from the demo server registration)
+
+When building the Docker containers, the backend **must** go first.
 
 From the toolhunt directory:
 
