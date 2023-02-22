@@ -3,10 +3,10 @@ import datetime
 import requests
 from flask import jsonify
 from flask.views import MethodView
-from flask_smorest import Blueprint
+from flask_smorest import Blueprint, abort
 from sqlalchemy import desc, text
 from api import db
-from api.schemas import ContributionLimitSchema, ContributionSchema, FieldSchema, ScoreSchema, ScoreLimitSchema, TaskSchema, TaskCompleteSchema
+from api.schemas import ContributionLimitSchema, ContributionSchema, FieldSchema, ScoreSchema, ScoreLimitSchema, TaskSchema, TaskCompleteSchema, UserSchema
 from api.models import Field, Task
 
 contributions = Blueprint("contributions", __name__, description="Get information about contributions made using Toolhunt")
@@ -95,7 +95,7 @@ class TaskById(MethodView):
     return task
   
   @tasks.arguments(TaskCompleteSchema)
-  @tasks.response(200)
+  @tasks.response(201)
   def put(self, task_data, task_id):
     """Update a tool record on Toolhub."""
     task = Task.query.get_or_404(task_id)
@@ -144,7 +144,7 @@ def get_current_user():
     username = profile["username"]
     return username
   except:
-    return "Something has gone wrong."
+    abort(401, message="No user is currently logged in.")
   
 def put_to_toolhub(tool, data):
   """Take request data from the frontend and make a PUT request to Toolhub."""
@@ -159,7 +159,7 @@ user = Blueprint("user", __name__, description="Get information about the curren
 
 @user.route("/api/user")
 class CurrentUser(MethodView):
-  @tasks.response(200)
+  @tasks.response(200, UserSchema)
   def get(self):
     """Get the username of currently logged-in user."""
     try:
@@ -169,6 +169,7 @@ class CurrentUser(MethodView):
       resp.raise_for_status()
       profile = resp.json()
       username = profile["username"]
-      return username
+      response = {"username": username}
+      return jsonify(response)
     except:
-      return "No user is currently logged in."
+      abort(401, message="No user is currently logged in.")
