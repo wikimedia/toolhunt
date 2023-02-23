@@ -2,10 +2,10 @@ import json
 
 from flask.cli import FlaskGroup
 
-from api import db
+from api import db, thc
 from api.models import Task
 from app import app
-from jobs.populate_db import get_tools, insert_fields, populate_db
+from jobs.populate_db import insert_fields, populate_db
 
 cli = FlaskGroup(app)
 
@@ -19,7 +19,7 @@ def run_field_insert():
 @cli.command("populate_db_initial")
 def run_populate_db():
     """Fetches and inserts tool data from Toolhub"""
-    tool_data = get_tools()
+    tool_data = thc.get_all()
     populate_db(tool_data)
 
 
