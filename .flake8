@@ -1,9 +1,0 @@
-# Flake8 does not support configuration via pyproject.toml
-# See <https://gitlab.com/pycqa/flake8/-/issues/428> for details
-
-[flake8]
-# Match the Black line length (default 88),
-# rather than using the flake8 default of 79:
-max-line-length = 88
-extend-ignore = E203, W503
-ignore = E127, E501
