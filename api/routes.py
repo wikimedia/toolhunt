@@ -4,6 +4,8 @@ import flask
 from flask.views import MethodView
 from flask_smorest import Blueprint
 from sqlalchemy import desc, exc, func, text
+from flask_smorest import Blueprint
+from sqlalchemy import desc, exc, text
 
 from api import db
 from api.models import Field, Task
@@ -75,6 +77,12 @@ class ContributionHighScores(MethodView):
             scores_query = text(
                 "SELECT DISTINCT user, COUNT(*) AS 'score' FROM task WHERE user IS NOT NULL GROUP BY user ORDER BY 2 DESC LIMIT 30"
             )
+        results = db.session.execute(scores_query)
+        scores = []
+        for row in results:
+            result = {"user": row[0], "score": row[1]}
+            scores.append(result)
+        return scores
         results = db.session.execute(scores_query)
         scores = []
         for row in results:
