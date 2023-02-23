@@ -50,35 +50,43 @@ Then:
 
 - Open a browser window to localhost:8082
 
-### To initialize the Database
+## Working with the database
+
+### Initializing the Database
 
 - From the command line, `docker-compose exec flask-web flask db upgrade`
 
-### To access the Database
+### Accessing the Database
 
 - From the command line, `docker exec -it mariadb mariadb --user user -p mydatabase` (password: mypassword)
 
-### Adding bulk data to the Database
+### Adding field data to the Database
 
 Whether you're working with the mock data or "real" data, the contents of the `field` table will remain the same.
 
 - From the command line, `docker-compose exec flask-web python manage.py insert_fields`
 
-#### To insert mock data into the Database
+This needs to be done first, before adding tool data.
+
+### Adding test data to the Database
 
 The mock data set contains three tools and a set of completed tasks. When run, the function `populate_db_test` will put the tools through the insertion process and auto-generate tasks, as it would with "real" data.
+
+- From the command line, `docker-compose exec flask-web python manage.py populate_db_test`
 
 The results will appear on the command line. This command may be run multiple times; observe the command line messages to see what changes when a tool and/or task is already present in the DB.
 
 The set of completed tasks will allow us to test that the high scores, user contributions, and latest contributions are returning correctly.
 
-- From the command line, `docker-compose exec flask-web python manage.py populate_db_test`
-
-#### To insert a full data set into the Database
+### Adding a full data set from Toolhub to the Database
 
 - From the command line, `docker-compose exec flask-web python manage.py populate_db_initial`
 
 While in development mode, this fetch request draws data from the Toolhub Test Server. It can be run prior to or following `populate_db_test`.
+
+## Running local CI and tests
+
+Toolhunt uses [tox](https://tox.wiki/en/latest/) to handle local CI (linting, syntax, style, code formatting and import sorting). To use it, follow the [installation instructions](https://tox.wiki/en/latest/installation.html) and, from the toolhunt directory, enter `tox` on the command line.
 
 ## Technologies to be Used
 
