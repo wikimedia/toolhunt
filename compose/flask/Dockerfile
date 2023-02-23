@@ -26,4 +26,3 @@ RUN chmod +x /start
 
 RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
 COPY . /app
-
