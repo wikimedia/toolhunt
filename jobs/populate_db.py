@@ -46,7 +46,7 @@ def add_tool_entry(tool):
 def check_deprecation(tool):
     """Receives a dict containing tool information and checks its deprecation status."""
     tool_name = tool["name"]
-    if tool["deprecated"] == True or tool["annotations"]["deprecated"] == True:
+    if tool["deprecated"] is True or tool["annotations"]["deprecated"] is True:
         print(f"{tool_name} is deprecated")
         fields = []
         # If a tool is deprecated, we want to remove the unfinished tasks associated with it.
@@ -55,8 +55,8 @@ def check_deprecation(tool):
                 # We don't want to remove a "replaced_by" task, if one exists.
                 # We want to create one, if one doesn't exist.
                 if (
-                    tool["annotations"]["replaced_by"] == None
-                    and tool["replaced_by"] == None
+                    tool["annotations"]["replaced_by"] is None
+                    and tool["replaced_by"] is None
                 ):
                     add_tasks(["replaced_by"], tool_name)
                     continue
@@ -97,19 +97,19 @@ def sort_fields(tool):
         # Therefore I need to check both sources.  First, does it exist in the Core?
         elif field in tool:
             # if it does, and it has neither a value there nor in the Annotations, add it to empty_fields
-            if (tool[field] == [] or tool[field] == None) and (
-                tool["annotations"][field] == [] or tool["annotations"][field] == None
+            if (tool[field] == [] or tool[field] is None) and (
+                tool["annotations"][field] == [] or tool["annotations"][field] is None
             ):
                 empty_fields.append(field)
             # if it exists and has a value, add to completed_fields and move on to the next field
-            elif tool[field] != [] or tool[field] != None:
+            elif tool[field] != [] or tool[field] is not None:
                 completed_fields.append(field)
                 continue
         # In the event that the field doesn't exist in the Core, and if it has no value in Annotations, add to empty_fields
-        elif tool["annotations"][field] == [] or tool["annotations"][field] == None:
+        elif tool["annotations"][field] == [] or tool["annotations"][field] is None:
             empty_fields.append(field)
         # And if it does have a value, add to completed_fields
-        elif tool["annotations"][field] != [] or tool["annotations"][field] != None:
+        elif tool["annotations"][field] != [] or tool["annotations"][field] is not None:
             completed_fields.append(field)
     print({"Empty": empty_fields, "Completed": completed_fields})
     add_tasks(empty_fields, tool_name)
