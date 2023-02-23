@@ -11,8 +11,8 @@ db = SQLAlchemy()
 migrate = Migrate()
 oauth = OAuth()
 
-from api.config import config
-from api.routes import contributions, fields, tasks, user
+from api.config import config  # noqa
+from api.routes import contributions, fields, tasks, user  # noqa
 
 
 def create_app(config_name=None):

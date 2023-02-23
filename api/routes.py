@@ -4,7 +4,7 @@ import flask
 import requests
 from flask.views import MethodView
 from flask_smorest import Blueprint, abort
-from sqlalchemy import desc, text
+from sqlalchemy import desc, exc, text
 
 from api import db
 from api.models import Field, Task
@@ -142,7 +142,7 @@ class TaskById(MethodView):
             and task.tool_name == task_data["tool"]
             and task.field_name == task_data["field"]
         ):
-            if task.user != None:
+            if task.user is not None:
                 return "This task has already been completed."
             elif flask.session and flask.session["token"]:
                 tool = task_data["tool"]
@@ -156,8 +156,9 @@ class TaskById(MethodView):
                     try:
                         db.session.commit()
                         return f'{task_data["field"]} successfully updated for {tool}.'
-                    except:
-                        return "Updating our db didn't work."
+                    except exc.SQLAlchemyError as err:
+                        error = str(err.orig)
+                        return error
                 else:
                     return "Inserting the data into Toolhub didn't work."
             else:
