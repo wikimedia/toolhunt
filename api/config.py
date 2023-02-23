@@ -55,12 +55,14 @@ class DevelopmentConfig(BaseConfig):
     """Development config"""
 
     DEBUG = True
+    TOOLHUB_API_ENDPOINT = "https://toolhub-demo.wmcloud.org/api/tools/"
 
 
 class ProductionConfig(BaseConfig):
     """Production config"""
 
     DEBUG = False
+    TOOLHUB_API_ENDPOINT = "https://toolhub.wikimedia.org/api/tools/"
 
 
 config = {"development": DevelopmentConfig, "production": ProductionConfig}
