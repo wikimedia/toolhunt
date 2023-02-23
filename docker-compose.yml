@@ -35,6 +35,6 @@ networks:
   toolhunt-net:
     name: toolhunt-net
     driver: bridge
-    
+
 volumes:
   dbdata:
