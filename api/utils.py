@@ -1,6 +1,9 @@
+import datetime
+
 import flask
 import requests
 from flask_smorest import abort
+
 
 def build_request(task_data):
     """Take data and return an object to PUT to Toolhub"""
@@ -12,16 +15,17 @@ def build_request(task_data):
     data["comment"] = comment
     return data
 
+
 def get_current_user():
     """Get the username of currently logged-in user."""
     # This import is still throwing an error for me when I put it at the top of the file
-    from app import oauth # noqa
+    from app import oauth  # noqa
+
     if not flask.session:
         abort(401, message="No user is currently logged in.")
     else:
         try:
             resp = oauth.toolhub.get("user/", token=flask.session["token"])
-            print(resp, "This is from the function")
             resp.raise_for_status()
             profile = resp.json()
             username = profile["username"]
@@ -35,6 +39,13 @@ def get_current_user():
         except requests.exceptions.RequestException as err:
             print(err)
             abort(501, message="Server encountered an unexpected error.")
+
+
+def generate_past_date(days):
+    """Take an integer X and return a datetime object X days in the past."""
+    today = datetime.datetime.now(datetime.timezone.utc)
+    past_date = today - datetime.timedelta(days=days)
+    return past_date
 
 
 class ToolhubClient:
@@ -89,12 +100,14 @@ class ToolhubClient:
             ).json()
             tool_data.extend(api_response["results"])
         return tool_data
-    
+
     def put(self, tool, data):
         """Take request data from the frontend and make a PUT request to Toolhub."""
         url = f"{self.endpoint}{tool}/annotations/"
         headers = dict(self.headers)
-        headers.update({"Authorization": f'Bearer {flask.session["token"]["access_token"]}'})
+        headers.update(
+            {"Authorization": f'Bearer {flask.session["token"]["access_token"]}'}
+        )
         response = requests.put(url, data=data, headers=headers)
         r = response.status_code
         return r
