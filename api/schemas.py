@@ -53,3 +53,24 @@ class ScoreLimitSchema(Schema):
 
 class UserSchema(Schema):
     username = fields.Str(required=True)
+
+
+class UserMetricsSchema(Schema):
+    username = fields.Str(required=True)
+    total = fields.Int(required=True)
+    thirty_day = fields.Int(required=True)
+
+
+class ContributionsMetricsSchema(Schema):
+    total = fields.Int(required=True)
+    thirty_day = fields.Int(required=True)
+
+
+class TasksMetricsSchema(Schema):
+    total = fields.Int(required=True)
+    incomplete = fields.Int(required=True)
+
+
+class ToolsMetricsSchema(Schema):
+    total = fields.Int(required=True)
+    missing_info = fields.Int(required=True)
