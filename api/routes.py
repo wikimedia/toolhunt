@@ -4,22 +4,24 @@ import flask
 from flask.views import MethodView
 from flask_smorest import Blueprint
 from sqlalchemy import desc, exc, func, text
-from flask_smorest import Blueprint
-from sqlalchemy import desc, exc, text
 
 from api import db
 from api.models import Field, Task
 from api.schemas import (
     ContributionLimitSchema,
     ContributionSchema,
+    ContributionsMetricsSchema,
     FieldSchema,
     ScoreLimitSchema,
     ScoreSchema,
     TaskCompleteSchema,
     TaskSchema,
+    TasksMetricsSchema,
+    ToolsMetricsSchema,
+    UserMetricsSchema,
     UserSchema,
 )
-from api.utils import ToolhubClient, build_request, get_current_user
+from api.utils import ToolhubClient, build_request, generate_past_date, get_current_user
 
 contributions = Blueprint(
     "contributions",
@@ -67,9 +69,7 @@ class ContributionHighScores(MethodView):
     def get(self, query_args):
         """List the most prolific Toolhunters, by number of contributions."""
         if query_args:
-            today = datetime.datetime.now(datetime.timezone.utc)
-            day_count = query_args["since"]
-            end_date = today - datetime.timedelta(days=day_count)
+            end_date = generate_past_date(query_args["since"])
             scores_query = text(
                 "SELECT DISTINCT user, COUNT(*) AS 'score' FROM task WHERE user IS NOT NULL AND timestamp >= :date GROUP BY user ORDER BY 2 DESC LIMIT 30"
             ).bindparams(date=end_date)
@@ -100,7 +100,7 @@ fields = Blueprint(
 class FieldList(MethodView):
     @fields.response(200, FieldSchema(many=True))
     def get(self):
-        "List all annotations fields."
+        """List all annotations fields."""
         return Field.query.all()
 
 
@@ -108,8 +108,105 @@ class FieldList(MethodView):
 class FieldInformation(MethodView):
     @fields.response(200, FieldSchema)
     def get(self, name):
-        "Get information about an annotations field."
+        """Get information about an annotations field."""
         return Field.query.get_or_404(name)
+
+
+metrics = Blueprint(
+    "metrics",
+    __name__,
+    description="Get information about various metrics related to Toolhunt.",
+)
+
+
+@metrics.route("/api/metrics/contributions")
+class ContributionsMetrics(MethodView):
+    @metrics.response(200, ContributionsMetricsSchema)
+    def get(self):
+        """Get metrics pertaining to contributions."""
+        try:
+            date_limit = generate_past_date(30)
+            total = db.session.execute(
+                text("SELECT COUNT(*) FROM task WHERE user IS NOT NULL")
+            ).all()
+            thirty_day = db.session.execute(
+                text(
+                    "SELECT COUNT(*) FROM task WHERE user IS NOT NULL AND timestamp >= :date"
+                ).bindparams(date=date_limit)
+            ).all()
+            result = {"total": total[0][0], "thirty_day": thirty_day[0][0]}
+            return result
+        except exc.SQLAlchemyError as err:
+            error = str(err.orig)
+            return error
+
+
+@metrics.route("/api/metrics/tasks")
+class TaskMetrics(MethodView):
+    @metrics.response(200, TasksMetricsSchema)
+    def get(self):
+        """Get metrics pertaining to Toolhunt tasks."""
+        try:
+            total = db.session.execute(text("SELECT COUNT(*) FROM task")).all()
+            incomplete = db.session.execute(
+                text("SELECT COUNT(*) FROM task WHERE user IS NULL")
+            ).all()
+            result = {"total": total[0][0], "incomplete": incomplete[0][0]}
+            return result
+        except exc.SQLAlchemyError as err:
+            error = str(err.orig)
+            return error
+
+
+@metrics.route("/api/metrics/tools")
+class ToolMetrics(MethodView):
+    @metrics.response(200, ToolsMetricsSchema)
+    def get(self):
+        """Get metrics pertaining to tools."""
+        try:
+            total = db.session.execute(text("SELECT COUNT(*) FROM tool")).all()
+            missing_info = db.session.execute(
+                text("SELECT COUNT(DISTINCT tool_name) FROM task WHERE user IS NULL")
+            ).all()
+            result = {"total": total[0][0], "missing_info": missing_info[0][0]}
+            return result
+        except exc.SQLAlchemyError as err:
+            error = str(err.orig)
+            return error
+
+
+@metrics.route("/api/metrics/user")
+class UserMetrics(MethodView):
+    @metrics.response(200, UserMetricsSchema)
+    def get(self):
+        """Get metrics pertaining to the currently logged-in user."""
+        response = get_current_user()
+        if type(response) == str:
+            username = response
+            date_limit = generate_past_date(30)
+            try:
+                total_cont = db.session.execute(
+                    text("SELECT COUNT(*) FROM task WHERE user = :user").bindparams(
+                        user=username
+                    )
+                ).all()
+                thirty_cont = db.session.execute(
+                    text(
+                        "SELECT COUNT(*) FROM task WHERE user = :user AND timestamp >= :date"
+                    ).bindparams(user=username, date=date_limit)
+                ).all()
+                result = {
+                    "username": username,
+                    "total": total_cont[0][0],
+                    "thirty_day": thirty_cont[0][0],
+                }
+
+                return result
+            except exc.SQLAlchemyError as err:
+                error = str(err.orig)
+                return error
+        else:
+            return response
 
 
 tasks = Blueprint(
@@ -129,7 +226,7 @@ class TaskList(MethodView):
 class TaskById(MethodView):
     @tasks.response(200, TaskSchema)
     def get(self, task_id):
-        "Get information about a specific task."
+        """Get information about a specific task."""
         task = Task.query.get_or_404(task_id)
         return task
 

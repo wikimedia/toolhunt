@@ -29,12 +29,13 @@ def create_app(config_name=None):
     oauth.init_app(app)
     oauth.register(name="toolhub")
     # register blueprints
-    from api.routes import contributions, fields, tasks, user  # noqa
+    from api.routes import contributions, fields, metrics, tasks, user  # noqa
 
     api.register_blueprint(tasks)
     api.register_blueprint(contributions)
     api.register_blueprint(fields)
     api.register_blueprint(user)
+    api.register_blueprint(metrics)
     migrate.init_app(app, db)
 
     return app
