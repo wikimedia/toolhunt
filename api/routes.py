@@ -3,7 +3,7 @@ import datetime
 import flask
 from flask.views import MethodView
 from flask_smorest import Blueprint
-from sqlalchemy import desc, exc, text
+from sqlalchemy import desc, exc, text, func
 
 from api import db, thc
 from api.models import Field, Task
@@ -112,7 +112,7 @@ class TaskList(MethodView):
     @tasks.response(200, TaskSchema(many=True))
     def get(self):
         "Get ten incomplete tasks."
-        return Task.query.filter(Task.user.is_(None)).limit(10)
+        return Task.query.filter(Task.user.is_(None)).order_by(func.random()).limit(10)
 
 
 @tasks.route("/api/tasks/<string:task_id>")
