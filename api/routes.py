@@ -22,7 +22,7 @@ from api.utils import build_request, get_current_user
 contributions = Blueprint(
     "contributions",
     __name__,
-    description="Get information about contributions made using Toolhunt",
+    description="Get information about contributions made using Toolhunt.",
 )
 
 
@@ -31,7 +31,7 @@ class Contributions(MethodView):
     @contributions.arguments(ContributionLimitSchema, location="query", required=False)
     @contributions.response(200, ContributionSchema(many=True))
     def get(self, query_args):
-        """Return contributions made using Toolhunt."""
+        """List contributions made using Toolhunt."""
         if query_args:
             limit = query_args["limit"]
             return (
@@ -49,7 +49,7 @@ class Contributions(MethodView):
 class ContributionsByUser(MethodView):
     @contributions.response(200, ContributionSchema(many=True))
     def get(self, user):
-        """Return contributions by user."""
+        """List the ten most recent contributions by a user."""
         # Ideally in the future we could introduce pagination and return all of a user's contributions
         return (
             Task.query.filter(Task.user == user)
@@ -63,7 +63,7 @@ class ContributionHighScores(MethodView):
     @contributions.arguments(ScoreLimitSchema, location="query", required=False)
     @contributions.response(200, ScoreSchema(many=True))
     def get(self, query_args):
-        """Return the most prolific Toolhunters and their scores."""
+        """List the most prolific Toolhunters, by number of contributions."""
         if query_args:
             today = datetime.datetime.now(datetime.timezone.utc)
             day_count = query_args["since"]
@@ -84,7 +84,7 @@ class ContributionHighScores(MethodView):
 
 
 fields = Blueprint(
-    "fields", __name__, description="Retrieving information about annotations fields"
+    "fields", __name__, description="Get information about annotations fields"
 )
 
 
@@ -92,7 +92,7 @@ fields = Blueprint(
 class FieldList(MethodView):
     @fields.response(200, FieldSchema(many=True))
     def get(self):
-        "Return all annotations field data."
+        "List all annotations fields."
         return Field.query.all()
 
 
@@ -100,18 +100,18 @@ class FieldList(MethodView):
 class FieldInformation(MethodView):
     @fields.response(200, FieldSchema)
     def get(self, name):
-        "Return data about a specific annotations field."
+        "Get information about an annotations field."
         return Field.query.get_or_404(name)
 
 
-tasks = Blueprint("tasks", __name__, description="Fetching and updating Toolhunt tasks")
+tasks = Blueprint("tasks", __name__, description="Get incomplete tasks and submit data to Toolhub.")
 
 
 @tasks.route("/api/tasks")
 class TaskList(MethodView):
     @tasks.response(200, TaskSchema(many=True))
     def get(self):
-        "Return a bundle of 10 incomplete tasks."
+        "Get a bundle of ten incomplete tasks."
         return Task.query.filter(Task.user.is_(None)).limit(10)
 
 
@@ -119,14 +119,14 @@ class TaskList(MethodView):
 class TaskById(MethodView):
     @tasks.response(200, TaskSchema)
     def get(self, task_id):
-        "Return information about a specific task."
+        "Get information about a specific task."
         task = Task.query.get_or_404(task_id)
         return task
 
     @tasks.arguments(TaskCompleteSchema)
     @tasks.response(201)
     def put(self, task_data, task_id):
-        """Update a tool record on Toolhub."""
+        """Update a record on Toolhub and in our database."""
         task = Task.query.get_or_404(task_id)
         if (
             task
@@ -159,7 +159,7 @@ class TaskById(MethodView):
 
 
 user = Blueprint(
-    "user", __name__, description="Get information about the currently logged-in user."
+    "user", __name__, description="Get information about the current user."
 )
 
 
@@ -167,7 +167,7 @@ user = Blueprint(
 class CurrentUser(MethodView):
     @tasks.response(200, UserSchema)
     def get(self):
-        """Get the username of currently logged-in user."""
+        """Get the Mediawiki username of the current user."""
         response = get_current_user()
         if type(response) == str:
             username = {"username": response}
