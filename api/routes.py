@@ -84,7 +84,7 @@ class ContributionHighScores(MethodView):
 
 
 fields = Blueprint(
-    "fields", __name__, description="Get information about annotations fields"
+    "fields", __name__, description="Get information about annotations fields."
 )
 
 
@@ -111,7 +111,7 @@ tasks = Blueprint("tasks", __name__, description="Get incomplete tasks and submi
 class TaskList(MethodView):
     @tasks.response(200, TaskSchema(many=True))
     def get(self):
-        "Get a bundle of ten incomplete tasks."
+        "Get ten incomplete tasks."
         return Task.query.filter(Task.user.is_(None)).limit(10)
 
 
@@ -126,7 +126,7 @@ class TaskById(MethodView):
     @tasks.arguments(TaskCompleteSchema)
     @tasks.response(201)
     def put(self, task_data, task_id):
-        """Update a record on Toolhub and in our database."""
+        """Update a tool record on Toolhub."""
         task = Task.query.get_or_404(task_id)
         if (
             task
@@ -159,7 +159,7 @@ class TaskById(MethodView):
 
 
 user = Blueprint(
-    "user", __name__, description="Get information about the current user."
+    "user", __name__, description="Get information about the currently logged-in user."
 )
 
 
@@ -167,7 +167,7 @@ user = Blueprint(
 class CurrentUser(MethodView):
     @tasks.response(200, UserSchema)
     def get(self):
-        """Get the Mediawiki username of the current user."""
+        """Get the username of the currently logged-in user."""
         response = get_current_user()
         if type(response) == str:
             username = {"username": response}
