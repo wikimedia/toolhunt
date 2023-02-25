@@ -10,15 +10,12 @@ from api.models import Field, Task
 from api.schemas import (
     ContributionLimitSchema,
     ContributionSchema,
-    ContributionsMetricsSchema,
     FieldSchema,
+    MetricsSchema,
     ScoreLimitSchema,
     ScoreSchema,
     TaskCompleteSchema,
     TaskSchema,
-    TasksMetricsSchema,
-    ToolsMetricsSchema,
-    UserMetricsSchema,
     UserSchema,
 )
 from api.utils import ToolhubClient, build_request, generate_past_date, get_current_user
@@ -121,21 +118,28 @@ metrics = Blueprint(
 
 @metrics.route("/api/metrics/contributions")
 class ContributionsMetrics(MethodView):
-    @metrics.response(200, ContributionsMetricsSchema)
+    @metrics.response(200, MetricsSchema(many=True))
     def get(self):
         """Get metrics pertaining to contributions."""
         try:
+            results = []
             date_limit = generate_past_date(30)
             total = db.session.execute(
                 text("SELECT COUNT(*) FROM task WHERE user IS NOT NULL")
             ).all()
+            results.append(dict(result=total[0][0], description="Total contributions:"))
             thirty_day = db.session.execute(
                 text(
                     "SELECT COUNT(*) FROM task WHERE user IS NOT NULL AND timestamp >= :date"
                 ).bindparams(date=date_limit)
             ).all()
-            result = {"total": total[0][0], "thirty_day": thirty_day[0][0]}
-            return result
+            results.append(
+                dict(
+                    result=thirty_day[0][0],
+                    description="Global contributions from the last 30 days:",
+                )
+            )
+            return results
         except exc.SQLAlchemyError as err:
             error = str(err.orig)
             return error
@@ -143,16 +147,28 @@ class ContributionsMetrics(MethodView):
 
 @metrics.route("/api/metrics/tasks")
 class TaskMetrics(MethodView):
-    @metrics.response(200, TasksMetricsSchema)
+    @metrics.response(200, MetricsSchema(many=True))
     def get(self):
         """Get metrics pertaining to Toolhunt tasks."""
         try:
+            results = []
             total = db.session.execute(text("SELECT COUNT(*) FROM task")).all()
+            results.append(
+                dict(
+                    result=total[0][0],
+                    description="Number of tasks in the Toolhunt database:",
+                )
+            )
             incomplete = db.session.execute(
                 text("SELECT COUNT(*) FROM task WHERE user IS NULL")
             ).all()
-            result = {"total": total[0][0], "incomplete": incomplete[0][0]}
-            return result
+            results.append(
+                dict(
+                    result=incomplete[0][0],
+                    description="Number of unfinished tasks in the Toolhunt database:",
+                )
+            )
+            return results
         except exc.SQLAlchemyError as err:
             error = str(err.orig)
             return error
@@ -160,16 +176,25 @@ class TaskMetrics(MethodView):
 
 @metrics.route("/api/metrics/tools")
 class ToolMetrics(MethodView):
-    @metrics.response(200, ToolsMetricsSchema)
+    @metrics.response(200, MetricsSchema(many=True))
     def get(self):
         """Get metrics pertaining to tools."""
         try:
+            results = []
             total = db.session.execute(text("SELECT COUNT(*) FROM tool")).all()
+            results.append(
+                dict(result=total[0][0], description="Number of tools on record:")
+            )
             missing_info = db.session.execute(
                 text("SELECT COUNT(DISTINCT tool_name) FROM task WHERE user IS NULL")
             ).all()
-            result = {"total": total[0][0], "missing_info": missing_info[0][0]}
-            return result
+            results.append(
+                dict(
+                    result=missing_info[0][0],
+                    description="Number of tools with incomplete information:",
+                )
+            )
+            return results
         except exc.SQLAlchemyError as err:
             error = str(err.orig)
             return error
@@ -177,36 +202,39 @@ class ToolMetrics(MethodView):
 
 @metrics.route("/api/metrics/user")
 class UserMetrics(MethodView):
-    @metrics.response(200, UserMetricsSchema)
+    @metrics.response(200, MetricsSchema(many=True))
     def get(self):
         """Get metrics pertaining to the currently logged-in user."""
-        response = get_current_user()
-        if type(response) == str:
-            username = response
+        user = get_current_user()
+        if type(user) == str:
             date_limit = generate_past_date(30)
             try:
+                results = []
                 total_cont = db.session.execute(
                     text("SELECT COUNT(*) FROM task WHERE user = :user").bindparams(
-                        user=username
+                        user=user
                     )
                 ).all()
+                results.append(
+                    dict(result=total_cont[0][0], description="My total contributions:")
+                )
                 thirty_cont = db.session.execute(
                     text(
                         "SELECT COUNT(*) FROM task WHERE user = :user AND timestamp >= :date"
-                    ).bindparams(user=username, date=date_limit)
+                    ).bindparams(user=user, date=date_limit)
                 ).all()
-                result = {
-                    "username": username,
-                    "total": total_cont[0][0],
-                    "thirty_day": thirty_cont[0][0],
-                }
-
-                return result
+                results.append(
+                    dict(
+                        result=thirty_cont[0][0],
+                        description="My contributions in the past 30 days:",
+                    )
+                )
+                return results
             except exc.SQLAlchemyError as err:
                 error = str(err.orig)
                 return error
         else:
-            return response
+            return user
 
 
 tasks = Blueprint(
