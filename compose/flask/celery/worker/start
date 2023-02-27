@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+set -o errexit
+set -o nounset
+
+#flask celery_worker
+watchfiles \
+  --filter python \
+  'celery -A app.celery worker --loglevel=info'

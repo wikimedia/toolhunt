@@ -17,6 +17,11 @@ sqlalchemy = "^2.0.0"
 python-dotenv = "^0.21.1"
 requests = "^2.28.2"
 authlib = "^1.2.0"
+celery = "^5.2.7"
+flower = "^1.2.0"
+redis = "^4.5.1"
+flask-celeryext = "^0.5.0"
+watchfiles = "^0.18.1"
 
 
 [tool.poetry.group.dev.dependencies]
