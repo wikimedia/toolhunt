@@ -1,23 +1,9 @@
-import subprocess
-
 import flask
 
 from api import create_app, ext_celery, oauth
 
 app = create_app()
 celery = ext_celery.celery
-
-
-# Enable celery auto reloading
-def run_worker():
-    subprocess.call(["celery", "-A", "app.celery", "worker", "--loglevel=info"])
-
-
-@app.cli.command("celery_worker")
-def celery_worker():
-    from watchgod import run_process
-
-    run_process("./api", run_worker)
 
 
 @app.route("/")
@@ -43,3 +29,11 @@ def logout():
     """Clear session and redirect to /."""
     flask.session.clear()
     return flask.redirect("/")
+
+
+@celery.task
+def divide(x, y):
+    import time
+
+    time.sleep(5)
+    return x / y
