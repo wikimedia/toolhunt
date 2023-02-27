@@ -11,6 +11,7 @@ services:
     env_file: ./.env.dev
     command: /start
     depends_on:
+      - redis
       - db
     networks:
       - toolhunt-net
@@ -30,6 +31,46 @@ services:
       - 3306
     networks:
       - toolhunt-net
+
+  redis:
+    image: redis:latest
+    # container_name: redis
+    # ports:
+    #   - 6379:6379
+    # networks:
+    #   - toolhunt-net
+
+  celery_worker:
+    build:
+      context: .
+      dockerfile: ./compose/flask/Dockerfile
+    image: flask_celery_worker
+    command: /start-celeryworker
+    volumes:
+      - .:/app
+    env_file: ./.env.dev
+    environment:
+      - FLASK_APP=app
+    depends_on:
+      - redis
+      - db
+
+  flower:
+    build:
+      context: .
+      dockerfile: ./compose/flask/Dockerfile
+    image: flask_celery_flower
+    command: /start-flower
+    volumes:
+      - .:/app
+    env_file: ./.env.dev
+    environment:
+      - FLASK_APP=app
+    ports:
+      - 5555:5555
+    depends_on:
+      - redis
+      - db
 
 networks:
   toolhunt-net:

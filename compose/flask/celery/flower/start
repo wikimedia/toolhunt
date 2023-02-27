@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+
+set -o errexit
+set -o nounset
+
+worker_ready() {
+    celery -A app.celery inspect ping
+}
+
+until worker_ready; do
+  echo 'Waiting for Celery workers to be ready...' >&2
+  sleep 1
+done
+echo 'Celery workers ready' >&2
+
+celery -A app.celery  \
+    --broker="${CELERY_BROKER_URL}" \
+    flower \
+    --port=5555
