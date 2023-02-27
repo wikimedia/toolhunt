@@ -37,9 +37,11 @@ def create_app(config_name=None):
 
     return app
 
+
 def make_celery(app):
     celery = current_celery_app
     celery.config_from_object(app.config, namespace="CELERY")
     return celery
+
 
 ext_celery = FlaskCeleryExt(create_celery_app=make_celery)

@@ -1,7 +1,8 @@
-import flask
 import subprocess
 
-from api import create_app, oauth, ext_celery
+import flask
+
+from api import create_app, ext_celery, oauth
 
 app = create_app()
 celery = ext_celery.celery
