@@ -3,7 +3,7 @@ import datetime
 import flask
 from flask.views import MethodView
 from flask_smorest import Blueprint, abort
-from sqlalchemy import desc, exc, text, func
+from sqlalchemy import desc, exc, func, text
 
 from api import db
 from api.models import Field, Task
@@ -172,6 +172,7 @@ class TaskMetrics(MethodView):
         except exc.OperationalError as err:
             print(err)
             abort(503, message="Database connection failed.  Please try again.")
+
 
 @metrics.route("/api/metrics/tools")
 class ToolMetrics(MethodView):
