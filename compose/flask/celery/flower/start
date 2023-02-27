@@ -14,6 +14,7 @@ done
 echo 'Celery workers ready' >&2
 
 celery -A app.celery  \
-    --broker="${CELERY_BROKER_URL}" \
+# Referencing an env variable here was not working
+    --broker="redis://redis:6379/0" \
     flower \
     --port=5555

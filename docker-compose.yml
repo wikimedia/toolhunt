@@ -33,6 +33,7 @@ services:
       - toolhunt-net
 
   redis:
+    container_name: redis
     image: redis:latest
     # container_name: redis
     # ports:
