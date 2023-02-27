@@ -80,12 +80,6 @@ class ContributionHighScores(MethodView):
             result = {"user": row[0], "score": row[1]}
             scores.append(result)
         return scores
-        results = db.session.execute(scores_query)
-        scores = []
-        for row in results:
-            result = {"user": row[0], "score": row[1]}
-            scores.append(result)
-        return scores
 
 
 fields = Blueprint(
