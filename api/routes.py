@@ -3,7 +3,7 @@ import datetime
 import flask
 from flask.views import MethodView
 from flask_smorest import Blueprint
-from sqlalchemy import desc, exc, text, func
+from sqlalchemy import desc, exc, func, text
 
 from api import db, thc
 from api.models import Field, Task
@@ -104,7 +104,9 @@ class FieldInformation(MethodView):
         return Field.query.get_or_404(name)
 
 
-tasks = Blueprint("tasks", __name__, description="Get incomplete tasks and submit data to Toolhub.")
+tasks = Blueprint(
+    "tasks", __name__, description="Get incomplete tasks and submit data to Toolhub."
+)
 
 
 @tasks.route("/api/tasks")
