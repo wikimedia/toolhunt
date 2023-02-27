@@ -10,6 +10,10 @@ class BaseConfig:
     """Base config"""
 
     BASE_DIR = Path(__file__).parent.parent
+    CELERY_BROKER_URL = os.environ.get("CELERY_BROKER_URL", "redis://127.0.0.1:6379/0")
+    CELERY_RESULT_BACKEND = os.environ.get(
+        "CELERY_RESULT_BACKEND", "redis://127.0.0.1:6379/0"
+    )
     TESTING = False
     SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL", "sqlite://")
     SQLALCHEMY_TRACK_MODIFICATIONS = False
