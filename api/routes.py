@@ -2,8 +2,8 @@ import datetime
 
 import flask
 from flask.views import MethodView
-from flask_smorest import Blueprint
-from sqlalchemy import desc, exc, func, text
+from flask_smorest import Blueprint, abort
+from sqlalchemy import desc, exc, text, func
 
 from api import db
 from api.models import Field, Task
@@ -140,9 +140,9 @@ class ContributionsMetrics(MethodView):
                 )
             )
             return results
-        except exc.SQLAlchemyError as err:
-            error = str(err.orig)
-            return error
+        except exc.OperationalError as err:
+            print(err)
+            abort(503, message="Database connection failed.  Please try again.")
 
 
 @metrics.route("/api/metrics/tasks")
@@ -169,10 +169,9 @@ class TaskMetrics(MethodView):
                 )
             )
             return results
-        except exc.SQLAlchemyError as err:
-            error = str(err.orig)
-            return error
-
+        except exc.OperationalError as err:
+            print(err)
+            abort(503, message="Database connection failed.  Please try again.")
 
 @metrics.route("/api/metrics/tools")
 class ToolMetrics(MethodView):
@@ -195,9 +194,9 @@ class ToolMetrics(MethodView):
                 )
             )
             return results
-        except exc.SQLAlchemyError as err:
-            error = str(err.orig)
-            return error
+        except exc.OperationalError as err:
+            print(err)
+            abort(503, message="Database connection failed.  Please try again.")
 
 
 @metrics.route("/api/metrics/user")
@@ -230,9 +229,9 @@ class UserMetrics(MethodView):
                     )
                 )
                 return results
-            except exc.SQLAlchemyError as err:
-                error = str(err.orig)
-                return error
+            except exc.OperationalError as err:
+                print(err)
+                abort(503, message="Database connection failed.  Please try again.")
         else:
             return user
 
