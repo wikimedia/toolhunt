@@ -41,13 +41,9 @@ def get_current_user():
 
 
 class ToolhubClient:
-    def __init__(self, app=None):
+    def __init__(self, endpoint):
         self.headers = {"User-Agent": "Toolhunt API"}
-        if app is not None:
-            self.init_app(app)
-
-    def init_app(self, app):
-        self.endpoint = app.config["TOOLHUB_API_ENDPOINT"]
+        self.endpoint = endpoint
 
     def get(self, tool):
         """Get data on a single tool and return a list"""

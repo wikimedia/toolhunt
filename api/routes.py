@@ -5,7 +5,7 @@ from flask.views import MethodView
 from flask_smorest import Blueprint
 from sqlalchemy import desc, exc, func, text
 
-from api import db, thc
+from api import db
 from api.models import Field, Task
 from api.schemas import (
     ContributionLimitSchema,
@@ -17,7 +17,7 @@ from api.schemas import (
     TaskSchema,
     UserSchema,
 )
-from api.utils import build_request, get_current_user
+from api.utils import ToolhubClient, build_request, get_current_user
 
 contributions = Blueprint(
     "contributions",
@@ -129,6 +129,10 @@ class TaskById(MethodView):
     @tasks.response(201)
     def put(self, task_data, task_id):
         """Update a tool record on Toolhub."""
+        from app import app  # noqa
+
+        toolhub_client = ToolhubClient(app.config["TOOLHUB_API_ENDPOINT"])
+        print(toolhub_client.endpoint)
         task = Task.query.get_or_404(task_id)
         if (
             task
@@ -140,7 +144,7 @@ class TaskById(MethodView):
             elif flask.session and flask.session["token"]:
                 tool = task_data["tool"]
                 data_obj = build_request(task_data)
-                result = thc.put(tool, data_obj)
+                result = toolhub_client.put(tool, data_obj)
                 if result == 200:
                     username = get_current_user()
                     task.user = username

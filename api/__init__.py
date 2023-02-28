@@ -8,16 +8,12 @@ from flask_migrate import Migrate
 from flask_smorest import Api
 from flask_sqlalchemy import SQLAlchemy
 
-from api.utils import ToolhubClient
+from api.config import config
 
 api = Api()
 db = SQLAlchemy()
 migrate = Migrate()
 oauth = OAuth()
-thc = ToolhubClient()
-
-from api.config import config  # noqa
-from api.routes import contributions, fields, tasks, user  # noqa
 
 
 def create_app(config_name=None):
@@ -30,9 +26,11 @@ def create_app(config_name=None):
     api.init_app(app)
     ext_celery.init_app(app)
     db.init_app(app)
-    thc.init_app(app)
     oauth.init_app(app)
     oauth.register(name="toolhub")
+    # register blueprints
+    from api.routes import contributions, fields, tasks, user  # noqa
+
     api.register_blueprint(tasks)
     api.register_blueprint(contributions)
     api.register_blueprint(fields)
