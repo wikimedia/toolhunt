@@ -21,22 +21,23 @@ def create_app(config_name=None):
         config_name = os.environ.get("FLASK_CONFIG", "development")
 
     app = Flask(__name__)
-    app.config.from_object(config[config_name])
+    with app.app_context():
+        app.config.from_object(config[config_name])
 
-    api.init_app(app)
-    ext_celery.init_app(app)
-    db.init_app(app)
-    oauth.init_app(app)
-    oauth.register(name="toolhub")
-    # register blueprints
-    from api.routes import contributions, fields, metrics, tasks, user  # noqa
+        api.init_app(app)
+        ext_celery.init_app(app)
+        db.init_app(app)
+        oauth.init_app(app)
+        oauth.register(name="toolhub")
 
-    api.register_blueprint(tasks)
-    api.register_blueprint(contributions)
-    api.register_blueprint(fields)
-    api.register_blueprint(user)
-    api.register_blueprint(metrics)
-    migrate.init_app(app, db)
+        # register blueprints
+        from api.routes import contributions, fields, tasks, user  # noqa
+
+        api.register_blueprint(tasks)
+        api.register_blueprint(contributions)
+        api.register_blueprint(fields)
+        api.register_blueprint(user)
+        migrate.init_app(app, db)
 
     return app
 

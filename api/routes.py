@@ -1,6 +1,7 @@
 import datetime
 
 import flask
+from flask import current_app
 from flask.views import MethodView
 from flask_smorest import Blueprint, abort
 from sqlalchemy import desc, exc, func, text
@@ -19,6 +20,8 @@ from api.schemas import (
     UserSchema,
 )
 from api.utils import ToolhubClient, build_request, generate_past_date, get_current_user
+
+toolhub_client = ToolhubClient(current_app.config["TOOLHUB_API_ENDPOINT"])
 
 contributions = Blueprint(
     "contributions",
@@ -254,11 +257,8 @@ class TaskById(MethodView):
 
     @tasks.arguments(TaskCompleteSchema)
     @tasks.response(201)
-    def put(self, task_data, task_id):
+    def put(self, task_data, task_id, toolhub_client):
         """Update a tool record on Toolhub."""
-        from app import app  # noqa
-
-        toolhub_client = ToolhubClient(app.config["TOOLHUB_API_ENDPOINT"])
         print(toolhub_client.endpoint)
         task = Task.query.get_or_404(task_id)
         if (
