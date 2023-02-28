@@ -2,7 +2,7 @@ import datetime
 
 import flask
 from flask.views import MethodView
-from flask_smorest import Blueprint
+from flask_smorest import Blueprint, abort
 from sqlalchemy import desc, exc, func, text
 
 from api import db
@@ -11,13 +11,14 @@ from api.schemas import (
     ContributionLimitSchema,
     ContributionSchema,
     FieldSchema,
+    MetricsSchema,
     ScoreLimitSchema,
     ScoreSchema,
     TaskCompleteSchema,
     TaskSchema,
     UserSchema,
 )
-from api.utils import ToolhubClient, build_request, get_current_user
+from api.utils import ToolhubClient, build_request, generate_past_date, get_current_user
 
 contributions = Blueprint(
     "contributions",
@@ -65,9 +66,7 @@ class ContributionHighScores(MethodView):
     def get(self, query_args):
         """List the most prolific Toolhunters, by number of contributions."""
         if query_args:
-            today = datetime.datetime.now(datetime.timezone.utc)
-            day_count = query_args["since"]
-            end_date = today - datetime.timedelta(days=day_count)
+            end_date = generate_past_date(query_args["since"])
             scores_query = text(
                 "SELECT DISTINCT user, COUNT(*) AS 'score' FROM task WHERE user IS NOT NULL AND timestamp >= :date GROUP BY user ORDER BY 2 DESC LIMIT 30"
             ).bindparams(date=end_date)
@@ -92,7 +91,7 @@ fields = Blueprint(
 class FieldList(MethodView):
     @fields.response(200, FieldSchema(many=True))
     def get(self):
-        "List all annotations fields."
+        """List all annotations fields."""
         return Field.query.all()
 
 
@@ -100,8 +99,136 @@ class FieldList(MethodView):
 class FieldInformation(MethodView):
     @fields.response(200, FieldSchema)
     def get(self, name):
-        "Get information about an annotations field."
+        """Get information about an annotations field."""
         return Field.query.get_or_404(name)
+
+
+metrics = Blueprint(
+    "metrics",
+    __name__,
+    description="Get information about various metrics related to Toolhunt.",
+)
+
+
+@metrics.route("/api/metrics/contributions")
+class ContributionsMetrics(MethodView):
+    @metrics.response(200, MetricsSchema(many=True))
+    def get(self):
+        """Get metrics pertaining to contributions."""
+        try:
+            results = []
+            date_limit = generate_past_date(30)
+            total = db.session.execute(
+                text("SELECT COUNT(*) FROM task WHERE user IS NOT NULL")
+            ).all()
+            results.append(dict(result=total[0][0], description="Total contributions:"))
+            thirty_day = db.session.execute(
+                text(
+                    "SELECT COUNT(*) FROM task WHERE user IS NOT NULL AND timestamp >= :date"
+                ).bindparams(date=date_limit)
+            ).all()
+            results.append(
+                dict(
+                    result=thirty_day[0][0],
+                    description="Global contributions from the last 30 days:",
+                )
+            )
+            return results
+        except exc.OperationalError as err:
+            print(err)
+            abort(503, message="Database connection failed.  Please try again.")
+
+
+@metrics.route("/api/metrics/tasks")
+class TaskMetrics(MethodView):
+    @metrics.response(200, MetricsSchema(many=True))
+    def get(self):
+        """Get metrics pertaining to Toolhunt tasks."""
+        try:
+            results = []
+            total = db.session.execute(text("SELECT COUNT(*) FROM task")).all()
+            results.append(
+                dict(
+                    result=total[0][0],
+                    description="Number of tasks in the Toolhunt database:",
+                )
+            )
+            incomplete = db.session.execute(
+                text("SELECT COUNT(*) FROM task WHERE user IS NULL")
+            ).all()
+            results.append(
+                dict(
+                    result=incomplete[0][0],
+                    description="Number of unfinished tasks in the Toolhunt database:",
+                )
+            )
+            return results
+        except exc.OperationalError as err:
+            print(err)
+            abort(503, message="Database connection failed.  Please try again.")
+
+
+@metrics.route("/api/metrics/tools")
+class ToolMetrics(MethodView):
+    @metrics.response(200, MetricsSchema(many=True))
+    def get(self):
+        """Get metrics pertaining to tools."""
+        try:
+            results = []
+            total = db.session.execute(text("SELECT COUNT(*) FROM tool")).all()
+            results.append(
+                dict(result=total[0][0], description="Number of tools on record:")
+            )
+            missing_info = db.session.execute(
+                text("SELECT COUNT(DISTINCT tool_name) FROM task WHERE user IS NULL")
+            ).all()
+            results.append(
+                dict(
+                    result=missing_info[0][0],
+                    description="Number of tools with incomplete information:",
+                )
+            )
+            return results
+        except exc.OperationalError as err:
+            print(err)
+            abort(503, message="Database connection failed.  Please try again.")
+
+
+@metrics.route("/api/metrics/user")
+class UserMetrics(MethodView):
+    @metrics.response(200, MetricsSchema(many=True))
+    def get(self):
+        """Get metrics pertaining to the currently logged-in user."""
+        user = get_current_user()
+        if type(user) == str:
+            date_limit = generate_past_date(30)
+            try:
+                results = []
+                total_cont = db.session.execute(
+                    text("SELECT COUNT(*) FROM task WHERE user = :user").bindparams(
+                        user=user
+                    )
+                ).all()
+                results.append(
+                    dict(result=total_cont[0][0], description="My total contributions:")
+                )
+                thirty_cont = db.session.execute(
+                    text(
+                        "SELECT COUNT(*) FROM task WHERE user = :user AND timestamp >= :date"
+                    ).bindparams(user=user, date=date_limit)
+                ).all()
+                results.append(
+                    dict(
+                        result=thirty_cont[0][0],
+                        description="My contributions in the past 30 days:",
+                    )
+                )
+                return results
+            except exc.OperationalError as err:
+                print(err)
+                abort(503, message="Database connection failed.  Please try again.")
+        else:
+            return user
 
 
 tasks = Blueprint(
@@ -121,7 +248,7 @@ class TaskList(MethodView):
 class TaskById(MethodView):
     @tasks.response(200, TaskSchema)
     def get(self, task_id):
-        "Get information about a specific task."
+        """Get information about a specific task."""
         task = Task.query.get_or_404(task_id)
         return task
 

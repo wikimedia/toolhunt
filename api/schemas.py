@@ -53,3 +53,8 @@ class ScoreLimitSchema(Schema):
 
 class UserSchema(Schema):
     username = fields.Str(required=True)
+
+
+class MetricsSchema(Schema):
+    result = fields.Int(required=True)
+    description = fields.Str(required=True)

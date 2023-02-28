@@ -1,3 +1,5 @@
+import datetime
+
 import flask
 import requests
 from flask_smorest import abort
@@ -24,7 +26,6 @@ def get_current_user():
     else:
         try:
             resp = oauth.toolhub.get("user/", token=flask.session["token"])
-            print(resp, "This is from the function")
             resp.raise_for_status()
             profile = resp.json()
             username = profile["username"]
@@ -38,6 +39,13 @@ def get_current_user():
         except requests.exceptions.RequestException as err:
             print(err)
             abort(501, message="Server encountered an unexpected error.")
+
+
+def generate_past_date(days):
+    """Take an integer X and return a datetime object X days in the past."""
+    today = datetime.datetime.now(datetime.timezone.utc)
+    past_date = today - datetime.timedelta(days=days)
+    return past_date
 
 
 class ToolhubClient:
