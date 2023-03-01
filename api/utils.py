@@ -140,3 +140,25 @@ class ToolhubClient:
         response = requests.put(url, data=data, headers=headers)
         r = response.status_code
         return r
+    
+    def get_celery(self, tool):
+        """Get data on a single tool and return a list
+        
+        This is routed through Celery"""
+        url = f"{self.endpoint}{tool}"
+        try:
+            response = requests.get(url, headers=self.headers)
+            response.raise_for_status()
+        except requests.exceptions.HTTPError as e:
+            print("HTTP error - most likely no tool by that name exists")
+            print(e.args[0])
+        except requests.exceptions.ConnectionError:
+            print("Connection error.  Please try again.")
+        except requests.exceptions.Timeout:
+            print("Request timed out.")
+            # Could automatically retry
+        except requests.exceptions.RequestException as e:
+            print("Something went wrong.")
+            print(e)
+        api_response = response.json()
+        return api_response

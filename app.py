@@ -56,4 +56,5 @@ def make_get_request(name_string):
     from app import app
 
     toolhub_client = ToolhubClient(app.config["TOOLHUB_API_ENDPOINT"])
-    toolhub_client.get(name_string)
+    toolhub_client.get_celery(name_string)
+    
