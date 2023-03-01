@@ -296,12 +296,25 @@ class TestCeleryPut(MethodView):
         if flask.session and flask.session["token"]:
             tool_name = "testy-mc-deprecated-tool"
             data_obj = {
-                "replaced_by": "https://www.example.com",
-                "comment": "toolhunt celery practice",
+                "replaced_by": "333",
+                "comment": "still more toolhunt celery practice",
             }
             token = flask.session["token"]["access_token"]
             task = make_put_request.delay(tool_name, data_obj, token)
-            return task.get()
+            response = task.get()
+            if response["code"]:
+                if response["code"] == 4004:
+                    abort(404, message="No such tool found in Toolhub's records.")
+                elif response["code"] == "1000":
+                    # Yes, this response code is actually a string.  I am compiling a list for Bryan.
+                    res_message = response["errors"][0]["message"]
+                    abort(400, message=f"Validation failure. {res_message}")
+            else:
+                # What I need to do now is check the value of the field in the response
+                # vs the value of the field that we submitted.
+                # If they are equal, then we're good!
+                return response
+
         else:
             abort(401, message="User must be logged in.")
 

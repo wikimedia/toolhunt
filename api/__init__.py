@@ -1,6 +1,7 @@
 import os
 
 from authlib.integrations.flask_client import OAuth
+
 # from celery import current_app as current_celery_app
 from flask import Flask
 from flask_celeryext import FlaskCeleryExt

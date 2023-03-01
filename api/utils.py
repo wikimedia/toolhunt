@@ -122,15 +122,14 @@ class ToolhubClient:
         headers = dict(self.headers)
         headers.update(
             {"Authorization": f'Bearer {flask.session["token"]["access_token"]}'}
-        )        
+        )
         response = requests.put(url, data=data, headers=headers)
         r = response.status_code
         return r
-    
 
     def put_celery(self, tool, data, token):
         """Take request data from the frontend and make a PUT request to Toolhub.
-        
+
         This is routed through Celery
         Currently a WIP
         """
@@ -138,12 +137,12 @@ class ToolhubClient:
         headers = dict(self.headers)
         headers.update({"Authorization": f"Bearer {token}"})
         response = requests.put(url, data=data, headers=headers)
-        r = response.status_code
-        return r
-    
+        api_response = response.json()
+        return api_response
+
     def get_celery(self, tool):
         """Get data on a single tool and return a list
-        
+
         This is routed through Celery"""
         url = f"{self.endpoint}{tool}"
         try:

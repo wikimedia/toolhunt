@@ -48,7 +48,7 @@ def make_put_request(name_string, data_obj, token):
     from app import app
 
     toolhub_client = ToolhubClient(app.config["TOOLHUB_API_ENDPOINT"])
-    toolhub_client.put_celery(name_string, data_obj, token)
+    return toolhub_client.put_celery(name_string, data_obj, token)
 
 
 @celery.task()
@@ -56,5 +56,4 @@ def make_get_request(name_string):
     from app import app
 
     toolhub_client = ToolhubClient(app.config["TOOLHUB_API_ENDPOINT"])
-    toolhub_client.get_celery(name_string)
-    
+    return toolhub_client.get_celery(name_string)
