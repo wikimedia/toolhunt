@@ -1,10 +1,10 @@
 import datetime
 
 import flask
-import requests
+from flask import current_app
 from flask.views import MethodView
 from flask_smorest import Blueprint, abort
-from sqlalchemy import desc, exc, text
+from sqlalchemy import desc, exc, func, text
 
 from api import db
 from api.models import Field, Task
@@ -12,17 +12,21 @@ from api.schemas import (
     ContributionLimitSchema,
     ContributionSchema,
     FieldSchema,
+    MetricsSchema,
     ScoreLimitSchema,
     ScoreSchema,
     TaskCompleteSchema,
     TaskSchema,
     UserSchema,
 )
+from api.utils import ToolhubClient, build_request, generate_past_date, get_current_user
+
+toolhub_client = ToolhubClient(current_app.config["TOOLHUB_API_ENDPOINT"])
 
 contributions = Blueprint(
     "contributions",
     __name__,
-    description="Get information about contributions made using Toolhunt",
+    description="Get information about contributions made using Toolhunt.",
 )
 
 
@@ -31,7 +35,7 @@ class Contributions(MethodView):
     @contributions.arguments(ContributionLimitSchema, location="query", required=False)
     @contributions.response(200, ContributionSchema(many=True))
     def get(self, query_args):
-        """Return contributions made using Toolhunt."""
+        """List contributions made using Toolhunt."""
         if query_args:
             limit = query_args["limit"]
             return (
@@ -49,7 +53,7 @@ class Contributions(MethodView):
 class ContributionsByUser(MethodView):
     @contributions.response(200, ContributionSchema(many=True))
     def get(self, user):
-        """Return contributions by user."""
+        """List the ten most recent contributions by a user."""
         # Ideally in the future we could introduce pagination and return all of a user's contributions
         return (
             Task.query.filter(Task.user == user)
@@ -63,37 +67,26 @@ class ContributionHighScores(MethodView):
     @contributions.arguments(ScoreLimitSchema, location="query", required=False)
     @contributions.response(200, ScoreSchema(many=True))
     def get(self, query_args):
-        """Return the most prolific Toolhunters and their scores."""
+        """List the most prolific Toolhunters, by number of contributions."""
         if query_args:
-            today = datetime.datetime.now(datetime.timezone.utc)
-            day_count = query_args["since"]
-            end_date = today - datetime.timedelta(days=day_count)
-            print(end_date)
+            end_date = generate_past_date(query_args["since"])
             scores_query = text(
                 "SELECT DISTINCT user, COUNT(*) AS 'score' FROM task WHERE user IS NOT NULL AND timestamp >= :date GROUP BY user ORDER BY 2 DESC LIMIT 30"
             ).bindparams(date=end_date)
-            scores = get_scores(scores_query)
-            return scores
         else:
             scores_query = text(
                 "SELECT DISTINCT user, COUNT(*) AS 'score' FROM task WHERE user IS NOT NULL GROUP BY user ORDER BY 2 DESC LIMIT 30"
             )
-            scores = get_scores(scores_query)
-            return scores
-
-
-def get_scores(scores_query):
-    """Insert score data into a list of dicts and return."""
-    results = db.session.execute(scores_query)
-    scores = []
-    for row in results:
-        result = {"user": row[0], "score": row[1]}
-        scores.append(result)
-    return scores
+        results = db.session.execute(scores_query)
+        scores = []
+        for row in results:
+            result = {"user": row[0], "score": row[1]}
+            scores.append(result)
+        return scores
 
 
 fields = Blueprint(
-    "fields", __name__, description="Retrieving information about annotations fields"
+    "fields", __name__, description="Get information about annotations fields."
 )
 
 
@@ -101,7 +94,7 @@ fields = Blueprint(
 class FieldList(MethodView):
     @fields.response(200, FieldSchema(many=True))
     def get(self):
-        "Return all annotations field data."
+        """List all annotations fields."""
         return Field.query.all()
 
 
@@ -109,26 +102,156 @@ class FieldList(MethodView):
 class FieldInformation(MethodView):
     @fields.response(200, FieldSchema)
     def get(self, name):
-        "Return data about a specific annotations field."
+        """Get information about an annotations field."""
         return Field.query.get_or_404(name)
 
 
-tasks = Blueprint("tasks", __name__, description="Fetching and updating Toolhunt tasks")
+metrics = Blueprint(
+    "metrics",
+    __name__,
+    description="Get information about various metrics related to Toolhunt.",
+)
+
+
+@metrics.route("/api/metrics/contributions")
+class ContributionsMetrics(MethodView):
+    @metrics.response(200, MetricsSchema(many=True))
+    def get(self):
+        """Get metrics pertaining to contributions."""
+        try:
+            results = []
+            date_limit = generate_past_date(30)
+            total = db.session.execute(
+                text("SELECT COUNT(*) FROM task WHERE user IS NOT NULL")
+            ).all()
+            results.append(dict(result=total[0][0], description="Total contributions:"))
+            thirty_day = db.session.execute(
+                text(
+                    "SELECT COUNT(*) FROM task WHERE user IS NOT NULL AND timestamp >= :date"
+                ).bindparams(date=date_limit)
+            ).all()
+            results.append(
+                dict(
+                    result=thirty_day[0][0],
+                    description="Global contributions from the last 30 days:",
+                )
+            )
+            return results
+        except exc.OperationalError as err:
+            print(err)
+            abort(503, message="Database connection failed.  Please try again.")
+
+
+@metrics.route("/api/metrics/tasks")
+class TaskMetrics(MethodView):
+    @metrics.response(200, MetricsSchema(many=True))
+    def get(self):
+        """Get metrics pertaining to Toolhunt tasks."""
+        try:
+            results = []
+            total = db.session.execute(text("SELECT COUNT(*) FROM task")).all()
+            results.append(
+                dict(
+                    result=total[0][0],
+                    description="Number of tasks in the Toolhunt database:",
+                )
+            )
+            incomplete = db.session.execute(
+                text("SELECT COUNT(*) FROM task WHERE user IS NULL")
+            ).all()
+            results.append(
+                dict(
+                    result=incomplete[0][0],
+                    description="Number of unfinished tasks in the Toolhunt database:",
+                )
+            )
+            return results
+        except exc.OperationalError as err:
+            print(err)
+            abort(503, message="Database connection failed.  Please try again.")
+
+
+@metrics.route("/api/metrics/tools")
+class ToolMetrics(MethodView):
+    @metrics.response(200, MetricsSchema(many=True))
+    def get(self):
+        """Get metrics pertaining to tools."""
+        try:
+            results = []
+            total = db.session.execute(text("SELECT COUNT(*) FROM tool")).all()
+            results.append(
+                dict(result=total[0][0], description="Number of tools on record:")
+            )
+            missing_info = db.session.execute(
+                text("SELECT COUNT(DISTINCT tool_name) FROM task WHERE user IS NULL")
+            ).all()
+            results.append(
+                dict(
+                    result=missing_info[0][0],
+                    description="Number of tools with incomplete information:",
+                )
+            )
+            return results
+        except exc.OperationalError as err:
+            print(err)
+            abort(503, message="Database connection failed.  Please try again.")
+
+
+@metrics.route("/api/metrics/user")
+class UserMetrics(MethodView):
+    @metrics.response(200, MetricsSchema(many=True))
+    def get(self):
+        """Get metrics pertaining to the currently logged-in user."""
+        user = get_current_user()
+        if type(user) == str:
+            date_limit = generate_past_date(30)
+            try:
+                results = []
+                total_cont = db.session.execute(
+                    text("SELECT COUNT(*) FROM task WHERE user = :user").bindparams(
+                        user=user
+                    )
+                ).all()
+                results.append(
+                    dict(result=total_cont[0][0], description="My total contributions:")
+                )
+                thirty_cont = db.session.execute(
+                    text(
+                        "SELECT COUNT(*) FROM task WHERE user = :user AND timestamp >= :date"
+                    ).bindparams(user=user, date=date_limit)
+                ).all()
+                results.append(
+                    dict(
+                        result=thirty_cont[0][0],
+                        description="My contributions in the past 30 days:",
+                    )
+                )
+                return results
+            except exc.OperationalError as err:
+                print(err)
+                abort(503, message="Database connection failed.  Please try again.")
+        else:
+            return user
+
+
+tasks = Blueprint(
+    "tasks", __name__, description="Get incomplete tasks and submit data to Toolhub."
+)
 
 
 @tasks.route("/api/tasks")
 class TaskList(MethodView):
     @tasks.response(200, TaskSchema(many=True))
     def get(self):
-        "Return a bundle of 10 incomplete tasks."
-        return Task.query.filter(Task.user.is_(None)).limit(10)
+        "Get ten incomplete tasks."
+        return Task.query.filter(Task.user.is_(None)).order_by(func.random()).limit(10)
 
 
 @tasks.route("/api/tasks/<string:task_id>")
 class TaskById(MethodView):
     @tasks.response(200, TaskSchema)
     def get(self, task_id):
-        "Return information about a specific task."
+        """Get information about a specific task."""
         task = Task.query.get_or_404(task_id)
         return task
 
@@ -143,11 +266,11 @@ class TaskById(MethodView):
             and task.field_name == task_data["field"]
         ):
             if task.user is not None:
-                return "This task has already been completed."
+                abort(409, message="This task has already been completed.")
             elif flask.session and flask.session["token"]:
                 tool = task_data["tool"]
                 data_obj = build_request(task_data)
-                result = put_to_toolhub(tool, data_obj)
+                result = toolhub_client.put(tool, data_obj)
                 if result == 200:
                     username = get_current_user()
                     task.user = username
@@ -156,63 +279,15 @@ class TaskById(MethodView):
                     try:
                         db.session.commit()
                         return f'{task_data["field"]} successfully updated for {tool}.'
-                    except exc.SQLAlchemyError as err:
-                        error = str(err.orig)
-                        return error
+                    except exc.DBAPIError as err:
+                        print(err)
+                        abort(503, message="Database connection failed.")
                 else:
-                    return "Inserting the data into Toolhub didn't work."
+                    abort(503, message="We were unable to insert the data into Toolhub.")
             else:
-                return "User must be logged in to update a tool."
+                abort(401, message="User must be logged in to update a tool.")
         else:
-            return "The data doesn't match the specified task."
-
-
-def build_request(task_data):
-    """Take data and return an object to PUT to Toolhub"""
-    field = task_data["field"]
-    value = task_data["value"]
-    comment = f"Updated {field} using Toolhunt"
-    data = {}
-    data[field] = value
-    data["comment"] = comment
-    return data
-
-
-def get_current_user():
-    """Get the username of currently logged-in user."""
-    # Importing the oauth early results in an error
-    # Will fix this once I've dealt with T330263
-    from app import oauth
-
-    if not flask.session:
-        abort(401, message="No user is currently logged in.")
-    else:
-        try:
-            resp = oauth.toolhub.get("user/", token=flask.session["token"])
-            print(resp, "This is from the function")
-            resp.raise_for_status()
-            profile = resp.json()
-            username = profile["username"]
-            return username
-        except requests.exceptions.HTTPError as err:
-            print(err)
-            abort(401, message="User authorization failed.")
-        except requests.exceptions.ConnectionError as err:
-            print(err)
-            abort(503, message="Server connection failed.  Please try again.")
-        except requests.exceptions.RequestException as err:
-            print(err)
-            abort(501, message="Server encountered an unexpected error.")
-
-
-def put_to_toolhub(tool, data):
-    """Take request data from the frontend and make a PUT request to Toolhub."""
-    TOOL_TEST_API_ENDPOINT = "https://toolhub-demo.wmcloud.org/api/tools/"
-    url = f"{TOOL_TEST_API_ENDPOINT}{tool}/annotations/"
-    header = {"Authorization": f'Bearer {flask.session["token"]["access_token"]}'}
-    response = requests.put(url, data=data, headers=header)
-    r = response.status_code
-    return r
+            abort(400, message="The data given doesn't match the task specifications.")
 
 
 user = Blueprint(
@@ -224,7 +299,7 @@ user = Blueprint(
 class CurrentUser(MethodView):
     @tasks.response(200, UserSchema)
     def get(self):
-        """Get the username of currently logged-in user."""
+        """Get the username of the currently logged-in user."""
         response = get_current_user()
         if type(response) == str:
             username = {"username": response}

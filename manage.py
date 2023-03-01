@@ -4,10 +4,12 @@ from flask.cli import FlaskGroup
 
 from api import db
 from api.models import Task
+from api.utils import ToolhubClient
 from app import app
-from jobs.populate_db import get_tools, insert_fields, populate_db
+from jobs.populate_db import insert_fields, populate_db
 
 cli = FlaskGroup(app)
+toolhub_client = ToolhubClient(app.config["TOOLHUB_API_ENDPOINT"])
 
 
 @cli.command("insert_fields")
@@ -19,7 +21,7 @@ def run_field_insert():
 @cli.command("populate_db_initial")
 def run_populate_db():
     """Fetches and inserts tool data from Toolhub"""
-    tool_data = get_tools()
+    tool_data = toolhub_client.get_all()
     populate_db(tool_data)
 
 
