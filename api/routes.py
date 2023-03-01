@@ -283,7 +283,9 @@ class TaskById(MethodView):
                         print(err)
                         abort(503, message="Database connection failed.")
                 else:
-                    abort(503, message="We were unable to insert the data into Toolhub.")
+                    abort(
+                        503, message="We were unable to insert the data into Toolhub."
+                    )
             else:
                 abort(401, message="User must be logged in to update a tool.")
         else:
