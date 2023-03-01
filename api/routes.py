@@ -257,9 +257,8 @@ class TaskById(MethodView):
 
     @tasks.arguments(TaskCompleteSchema)
     @tasks.response(201)
-    def put(self, task_data, task_id, toolhub_client):
+    def put(self, task_data, task_id):
         """Update a tool record on Toolhub."""
-        print(toolhub_client.endpoint)
         task = Task.query.get_or_404(task_id)
         if (
             task
@@ -267,7 +266,7 @@ class TaskById(MethodView):
             and task.field_name == task_data["field"]
         ):
             if task.user is not None:
-                return "This task has already been completed."
+                abort(409, message="This task has already been completed.")
             elif flask.session and flask.session["token"]:
                 tool = task_data["tool"]
                 data_obj = build_request(task_data)
@@ -280,15 +279,15 @@ class TaskById(MethodView):
                     try:
                         db.session.commit()
                         return f'{task_data["field"]} successfully updated for {tool}.'
-                    except exc.SQLAlchemyError as err:
-                        error = str(err.orig)
-                        return error
+                    except exc.DBAPIError as err:
+                        print(err)
+                        abort(503, message="Database connection failed.")
                 else:
-                    return "Inserting the data into Toolhub didn't work."
+                    abort(503, message="We were unable to insert the data into Toolhub.")
             else:
-                return "User must be logged in to update a tool."
+                abort(401, message="User must be logged in to update a tool.")
         else:
-            return "The data doesn't match the specified task."
+            abort(400, message="The data given doesn't match the task specifications.")
 
 
 user = Blueprint(
