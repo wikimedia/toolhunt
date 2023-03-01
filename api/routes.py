@@ -284,3 +284,35 @@ class CurrentUser(MethodView):
             return username
         else:
             return response
+
+
+@user.route("/api/user/test_put")
+class TestCeleryPut(MethodView):
+    @tasks.response(200)
+    def get(self):
+        """This is just for testing"""
+        from app import make_put_request
+
+        if flask.session and flask.session["token"]:
+            tool_name = "testy-mc-deprecated-tool"
+            data_obj = {
+                "replaced_by": "https://www.example.com",
+                "comment": "toolhunt celery practice",
+            }
+            token = flask.session["token"]["access_token"]
+            task = make_put_request.delay(tool_name, data_obj, token)
+            return task.get()
+        else:
+            abort(401, message="User must be logged in.")
+
+
+@user.route("/api/user/test_get")
+class TestCeleryGet(MethodView):
+    @tasks.response(200)
+    def get(self):
+        """This is just for testing"""
+        from app import make_get_request
+
+        tool_name = "testy-mc-deprecated-tool"
+        task = make_get_request.delay(tool_name)
+        return task.get()

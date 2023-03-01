@@ -1,9 +1,13 @@
 import flask
 
-from api import create_app, ext_celery, oauth
+from api import create_app, ext, oauth
+from api.utils import ToolhubClient
+
+# from flask_celeryext import RequestContextTask
+
 
 app = create_app()
-celery = ext_celery.celery
+celery = ext.celery
 
 
 @app.route("/")
@@ -37,3 +41,19 @@ def divide(x, y):
 
     time.sleep(5)
     return x / y
+
+
+@celery.task()
+def make_put_request(name_string, data_obj, token):
+    from app import app
+
+    toolhub_client = ToolhubClient(app.config["TOOLHUB_API_ENDPOINT"])
+    toolhub_client.put_celery(name_string, data_obj, token)
+
+
+@celery.task()
+def make_get_request(name_string):
+    from app import app
+
+    toolhub_client = ToolhubClient(app.config["TOOLHUB_API_ENDPOINT"])
+    toolhub_client.get(name_string)

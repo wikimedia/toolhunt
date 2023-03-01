@@ -48,6 +48,21 @@ def generate_past_date(days):
     return past_date
 
 
+# leaving this here for reference/historical reasons
+# the same is found in __init__.py
+# I had initially split it here and created a
+# tasks.py file to hold the tasks.
+# Ultimately that failed due to circular import issues.
+# I'll try it again later.
+
+# def make_celery(app):
+#     celery = current_celery_app
+#     # This may be what was causing a problem with the env variable configuration.
+#     # Bear this in mind if I try to update the env var names in future.
+#     celery.config_from_object(app.config, namespace="CELERY")
+#     return celery
+
+
 class ToolhubClient:
     def __init__(self, endpoint):
         self.headers = {"User-Agent": "Toolhunt API"}
@@ -107,7 +122,21 @@ class ToolhubClient:
         headers = dict(self.headers)
         headers.update(
             {"Authorization": f'Bearer {flask.session["token"]["access_token"]}'}
-        )
+        )        
+        response = requests.put(url, data=data, headers=headers)
+        r = response.status_code
+        return r
+    
+
+    def put_celery(self, tool, data, token):
+        """Take request data from the frontend and make a PUT request to Toolhub.
+        
+        This is routed through Celery
+        Currently a WIP
+        """
+        url = f"{self.endpoint}{tool}/annotations/"
+        headers = dict(self.headers)
+        headers.update({"Authorization": f"Bearer {token}"})
         response = requests.put(url, data=data, headers=headers)
         r = response.status_code
         return r
