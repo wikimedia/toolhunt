@@ -1,7 +1,7 @@
 import os
 
 from authlib.integrations.flask_client import OAuth
-from celery import current_app as current_celery_app
+# from celery import current_app as current_celery_app
 from flask import Flask
 from flask_celeryext import FlaskCeleryExt
 from flask_migrate import Migrate
@@ -14,6 +14,7 @@ api = Api()
 db = SQLAlchemy()
 migrate = Migrate()
 oauth = OAuth()
+ext = FlaskCeleryExt()
 
 
 def create_app(config_name=None):
@@ -25,11 +26,10 @@ def create_app(config_name=None):
         app.config.from_object(config[config_name])
 
         api.init_app(app)
-        ext_celery.init_app(app)
+        ext.init_app(app)
         db.init_app(app)
         oauth.init_app(app)
         oauth.register(name="toolhub")
-
         # register blueprints
         from api.routes import contributions, fields, metrics, tasks, user  # noqa
 
@@ -43,10 +43,10 @@ def create_app(config_name=None):
     return app
 
 
-def make_celery(app):
-    celery = current_celery_app
-    celery.config_from_object(app.config, namespace="CELERY")
-    return celery
+# def make_celery(app):
+#     celery = current_celery_app
+#     celery.config_from_object(app.config, namespace="CELERY")
+#     return celery
 
 
-ext_celery = FlaskCeleryExt(create_celery_app=make_celery)
+# ext_celery = FlaskCeleryExt(create_celery_app=make_celery)
