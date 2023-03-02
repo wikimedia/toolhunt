@@ -5,7 +5,7 @@ from flask_smorest import Blueprint, abort
 from sqlalchemy import desc, exc, func, text
 
 from api import db
-from api.async_tasks import make_put_request
+from api.async_tasks import make_put_request, process_result
 from api.models import Field, Task
 from api.schemas import (
     ContributionLimitSchema,
@@ -22,7 +22,6 @@ from api.schemas import (
     UserSchema,
 )
 from api.utils import ToolhubClient, build_request, generate_past_date, get_current_user
-from api.async_tasks import process_result
 
 toolhub_client = ToolhubClient(current_app.config["TOOLHUB_API_ENDPOINT"])
 
@@ -248,7 +247,9 @@ class TaskById(MethodView):
                 submission_data = build_request(form_data)
                 token = flask.session["token"]["access_token"]
                 celery_task = make_put_request.delay(tool_name, submission_data, token)
-                process_result(celery_task, task.id, form_data["field"], form_data["value"])
+                process_result(
+                    celery_task, task.id, form_data["field"], form_data["value"]
+                )
                 return "Task sent."
             else:
                 abort(401, message="User must be logged in to update a tool.")
