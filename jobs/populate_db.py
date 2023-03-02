@@ -68,7 +68,7 @@ def check_deprecation(tool):
                     add_tasks(["replaced_by"], tool_name)
                     continue
                 else:
-                    # Conversely, if the "replaced_by" field has been filled, 
+                    # Conversely, if the "replaced_by" field has been filled,
                     # but we have an existing, incomplete task in our DB, we want to delete it.
                     fields.append(field)
             else:
