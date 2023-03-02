@@ -1,5 +1,3 @@
-import datetime
-
 import flask
 from flask import current_app
 from flask.views import MethodView
@@ -248,38 +246,8 @@ class TaskById(MethodView):
                 tool = task_data["tool"]
                 data = build_request(task_data)
                 token = flask.session["token"]["access_token"]
-                put_task = make_put_request.delay(tool, data, token)
-                response = put_task.get()
-                # If the response contains a "code" field, it failed.
-                if "code" in response:
-                    if response["code"] == 4004:
-                        abort(404, message="No such tool found in Toolhub's records.")
-                    elif response["code"] == "1000":
-                        # Yes, this response code is actually a string.  I am compiling a list for Bryan.
-                        res_message = response["errors"][0]["message"]
-                        abort(400, message=f"Validation failure. {res_message}")
-                else:
-                    # The alternative to an error message is a dict containing the annotations fields for the tool.
-                    # We check to make sure that the value we submitted matches the returned value.
-                    edited_field = task_data["field"]
-                    expected_value = task_data["value"]
-                    if response[edited_field] == expected_value:
-                        # If so, we update our database
-                        username = get_current_user()
-                        task.user = username
-                        task.timestamp = datetime.datetime.now(datetime.timezone.utc)
-                        db.session.add(task)
-                        try:
-                            db.session.commit()
-                            return f"{edited_field} successfully updated for {tool}."
-                        except exc.DBAPIError as err:
-                            print(err)
-                            abort(503, message="Database connection failed.")
-                    else:
-                        abort(
-                            503,
-                            message="We were unable to insert the data into Toolhub.",
-                        )
+                make_put_request.delay(task, tool, data, token)
+                return     
             else:
                 abort(401, message="User must be logged in to update a tool.")
         else:
