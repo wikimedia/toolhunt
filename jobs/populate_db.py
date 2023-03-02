@@ -58,22 +58,10 @@ def check_deprecation(tool):
         fields = []
         # If a tool is deprecated, we want to remove the unfinished tasks associated with it.
         for field in tool["annotations"]:
-            if field == "replaced_by":
-                # We don't want to remove a "replaced_by" task, if one exists.
-                # We want to create one, if one doesn't exist.
-                if (
-                    tool["annotations"]["replaced_by"] is None
-                    and tool["replaced_by"] is None
-                ):
-                    add_tasks(["replaced_by"], tool_name)
-                    continue
-            else:
-                fields.append(field)
-        remove_tasks(fields, tool_name)
+            fields.append(field)
+            remove_tasks(fields, tool_name)
     else:
         print(f"{tool_name} is not deprecated.  Sorting annotations fields.")
-        # In the unlikely event that a tool has become undeprecated...
-        remove_tasks(["replaced_by"], tool_name)
         sort_fields(tool)
 
 
