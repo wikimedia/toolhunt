@@ -1,8 +1,6 @@
 import os
 
 from authlib.integrations.flask_client import OAuth
-
-# from celery import current_app as current_celery_app
 from flask import Flask
 from flask_celeryext import FlaskCeleryExt
 from flask_migrate import Migrate
@@ -42,12 +40,3 @@ def create_app(config_name=None):
         migrate.init_app(app, db)
 
     return app
-
-
-# def make_celery(app):
-#     celery = current_celery_app
-#     celery.config_from_object(app.config, namespace="CELERY")
-#     return celery
-
-
-# ext_celery = FlaskCeleryExt(create_celery_app=make_celery)
