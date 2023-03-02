@@ -11,12 +11,15 @@ from api.models import Field, Task
 from api.schemas import (
     ContributionLimitSchema,
     ContributionSchema,
+    ContributionsMetricsSchema,
     FieldSchema,
-    MetricsSchema,
     ScoreLimitSchema,
     ScoreSchema,
     TaskCompleteSchema,
     TaskSchema,
+    TasksMetricsSchema,
+    ToolsMetricsSchema,
+    UserMetricsSchema,
     UserSchema,
 )
 from api.utils import ToolhubClient, build_request, generate_past_date, get_current_user
@@ -115,27 +118,22 @@ metrics = Blueprint(
 
 @metrics.route("/api/metrics/contributions")
 class ContributionsMetrics(MethodView):
-    @metrics.response(200, MetricsSchema(many=True))
+    @metrics.response(200, ContributionsMetricsSchema)
     def get(self):
         """Get metrics pertaining to contributions."""
         try:
-            results = []
+            results = {}
             date_limit = generate_past_date(30)
             total = db.session.execute(
                 text("SELECT COUNT(*) FROM task WHERE user IS NOT NULL")
             ).all()
-            results.append(dict(result=total[0][0], description="Total contributions:"))
+            results["Total_contributions"] = total[0][0]
             thirty_day = db.session.execute(
                 text(
                     "SELECT COUNT(*) FROM task WHERE user IS NOT NULL AND timestamp >= :date"
                 ).bindparams(date=date_limit)
             ).all()
-            results.append(
-                dict(
-                    result=thirty_day[0][0],
-                    description="Global contributions from the last 30 days:",
-                )
-            )
+            results["Global_contributions_from_the_last_30_days"] = thirty_day[0][0]
             return results
         except exc.OperationalError as err:
             print(err)
@@ -144,27 +142,19 @@ class ContributionsMetrics(MethodView):
 
 @metrics.route("/api/metrics/tasks")
 class TaskMetrics(MethodView):
-    @metrics.response(200, MetricsSchema(many=True))
+    @metrics.response(200, TasksMetricsSchema)
     def get(self):
         """Get metrics pertaining to Toolhunt tasks."""
         try:
-            results = []
+            results = {}
             total = db.session.execute(text("SELECT COUNT(*) FROM task")).all()
-            results.append(
-                dict(
-                    result=total[0][0],
-                    description="Number of tasks in the Toolhunt database:",
-                )
-            )
+            results["Number_of_tasks_in_the_Toolhunt_database"] = total[0][0]
             incomplete = db.session.execute(
                 text("SELECT COUNT(*) FROM task WHERE user IS NULL")
             ).all()
-            results.append(
-                dict(
-                    result=incomplete[0][0],
-                    description="Number of unfinished tasks in the Toolhunt database:",
-                )
-            )
+            results["Number_of_unfinished_tasks_in_the_Toolhunt_database"] = incomplete[
+                0
+            ][0]
             return results
         except exc.OperationalError as err:
             print(err)
@@ -173,24 +163,17 @@ class TaskMetrics(MethodView):
 
 @metrics.route("/api/metrics/tools")
 class ToolMetrics(MethodView):
-    @metrics.response(200, MetricsSchema(many=True))
+    @metrics.response(200, ToolsMetricsSchema)
     def get(self):
         """Get metrics pertaining to tools."""
         try:
-            results = []
+            results = {}
             total = db.session.execute(text("SELECT COUNT(*) FROM tool")).all()
-            results.append(
-                dict(result=total[0][0], description="Number of tools on record:")
-            )
+            results["Number_of_tools_on_record"] = total[0][0]
             missing_info = db.session.execute(
                 text("SELECT COUNT(DISTINCT tool_name) FROM task WHERE user IS NULL")
             ).all()
-            results.append(
-                dict(
-                    result=missing_info[0][0],
-                    description="Number of tools with incomplete information:",
-                )
-            )
+            results["Number_of_tools_with_incomplete_information"] = missing_info[0][0]
             return results
         except exc.OperationalError as err:
             print(err)
@@ -199,33 +182,26 @@ class ToolMetrics(MethodView):
 
 @metrics.route("/api/metrics/user")
 class UserMetrics(MethodView):
-    @metrics.response(200, MetricsSchema(many=True))
+    @metrics.response(200, UserMetricsSchema)
     def get(self):
         """Get metrics pertaining to the currently logged-in user."""
         user = get_current_user()
         if type(user) == str:
             date_limit = generate_past_date(30)
             try:
-                results = []
+                results = {}
                 total_cont = db.session.execute(
                     text("SELECT COUNT(*) FROM task WHERE user = :user").bindparams(
                         user=user
                     )
                 ).all()
-                results.append(
-                    dict(result=total_cont[0][0], description="My total contributions:")
-                )
+                results["My_total_contributions"] = total_cont[0][0]
                 thirty_cont = db.session.execute(
                     text(
                         "SELECT COUNT(*) FROM task WHERE user = :user AND timestamp >= :date"
                     ).bindparams(user=user, date=date_limit)
                 ).all()
-                results.append(
-                    dict(
-                        result=thirty_cont[0][0],
-                        description="My contributions in the past 30 days:",
-                    )
-                )
+                results["My_contributions_in_the_past_30_days"] = thirty_cont[0][0]
                 return results
             except exc.OperationalError as err:
                 print(err)
