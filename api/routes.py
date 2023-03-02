@@ -22,6 +22,7 @@ from api.schemas import (
     UserSchema,
 )
 from api.utils import ToolhubClient, build_request, generate_past_date, get_current_user
+from api.async_tasks import process_result
 
 toolhub_client = ToolhubClient(current_app.config["TOOLHUB_API_ENDPOINT"])
 
@@ -232,22 +233,23 @@ class TaskById(MethodView):
 
     @tasks.arguments(TaskCompleteSchema)
     @tasks.response(201)
-    def put(self, task_data, task_id):
+    def put(self, form_data, task_id):
         """Update a tool record on Toolhub."""
         task = Task.query.get_or_404(task_id)
         if (
             task
-            and task.tool_name == task_data["tool"]
-            and task.field_name == task_data["field"]
+            and task.tool_name == form_data["tool"]
+            and task.field_name == form_data["field"]
         ):
             if task.user is not None:
                 abort(409, message="This task has already been completed.")
             elif flask.session and flask.session["token"]:
-                tool = task_data["tool"]
-                data = build_request(task_data)
+                tool_name = form_data["tool"]
+                submission_data = build_request(form_data)
                 token = flask.session["token"]["access_token"]
-                make_put_request.delay(task, tool, data, token)
-                return     
+                celery_task = make_put_request.delay(tool_name, submission_data, token)
+                process_result(celery_task, task.id, form_data["field"], form_data["value"])
+                return "Task sent."
             else:
                 abort(401, message="User must be logged in to update a tool.")
         else:
