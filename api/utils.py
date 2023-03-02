@@ -7,15 +7,15 @@ from flask_smorest import abort
 from api import oauth
 
 
-def build_request(task_data):
-    """Take data and return an object to PUT to Toolhub"""
-    field = task_data["field"]
-    value = task_data["value"]
+def build_request(form_data):
+    """Take form data and return a dict to PUT to Toolhub."""
+    field = form_data["field"]
+    value = form_data["value"]
     comment = f"Updated {field} using Toolhunt"
-    data = {}
-    data[field] = value
-    data["comment"] = comment
-    return data
+    submission_data = {}
+    submission_data[field] = value
+    submission_data["comment"] = comment
+    return submission_data
 
 
 def get_current_user():
