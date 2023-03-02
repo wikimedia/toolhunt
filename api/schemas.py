@@ -55,6 +55,21 @@ class UserSchema(Schema):
     username = fields.Str(required=True)
 
 
-class MetricsSchema(Schema):
-    result = fields.Int(required=True)
-    description = fields.Str(required=True)
+class ContributionsMetricsSchema(Schema):
+    Total_contributions = fields.Int(required=True)
+    Global_contributions_from_the_last_30_days = fields.Int(required=True)
+
+
+class TasksMetricsSchema(Schema):
+    Number_of_tasks_in_the_Toolhunt_database = fields.Int(required=True)
+    Number_of_unfinished_tasks_in_the_Toolhunt_database = fields.Int(required=True)
+
+
+class ToolsMetricsSchema(Schema):
+    Number_of_tools_on_record = fields.Int(required=True)
+    Number_of_tools_with_incomplete_information = fields.Int(required=True)
+
+
+class UserMetricsSchema(Schema):
+    My_total_contributions = fields.Int(required=True)
+    My_contributions_in_the_past_30_days = fields.Int(required=True)
