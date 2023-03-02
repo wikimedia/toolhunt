@@ -2,7 +2,6 @@ import datetime
 
 import flask
 import requests
-from celery import shared_task
 from flask_smorest import abort
 
 from api import oauth
@@ -113,12 +112,3 @@ class ToolhubClient:
         response = requests.put(url, data=data, headers=headers)
         api_response = response.json()
         return api_response
-
-
-@shared_task
-def make_put_request(name_string, data_obj, token):
-    """Create a PUT task using Celery and ToolhubClient."""
-    from app import app
-
-    toolhub_client = ToolhubClient(app.config["TOOLHUB_API_ENDPOINT"])
-    return toolhub_client.put(name_string, data_obj, token)
