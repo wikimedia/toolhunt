@@ -67,6 +67,10 @@ def check_deprecation(tool):
                 ):
                     add_tasks(["replaced_by"], tool_name)
                     continue
+                else:
+                    # Conversely, if the "replaced_by" field has been filled, 
+                    # but we have an existing, incomplete task in our DB, we want to delete it.
+                    fields.append(field)
             else:
                 fields.append(field)
         remove_tasks(fields, tool_name)
@@ -132,7 +136,7 @@ def remove_tasks(fields, tool_name):
         ).bindparams(field_name=field, tool=tool_name)
         db.session.execute(query)
         db.session.commit()
-        # The following print statement was firing whether a tool was deleted or not.
+        # The following print statement was firing whether a task was deleted or not.
         # It's nice that I can attempt to delete non-existent tasks without causing an error.
         # Is it worth throwing in another check to see if a task exists and then deleting it?
         # Then I could report what I was doing with more confidence.
