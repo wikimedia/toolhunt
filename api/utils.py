@@ -2,7 +2,10 @@ import datetime
 
 import flask
 import requests
+from celery import shared_task
 from flask_smorest import abort
+
+from api import oauth
 
 
 def build_request(task_data):
@@ -18,8 +21,6 @@ def build_request(task_data):
 
 def get_current_user():
     """Get the username of currently logged-in user."""
-    # This import is still throwing an error for me when I put it at the top of the file
-    from app import oauth  # noqa
 
     if not flask.session:
         abort(401, message="No user is currently logged in.")
@@ -46,21 +47,6 @@ def generate_past_date(days):
     today = datetime.datetime.now(datetime.timezone.utc)
     past_date = today - datetime.timedelta(days=days)
     return past_date
-
-
-# leaving this here for reference/historical reasons
-# the same is found in __init__.py
-# I had initially split it here and created a
-# tasks.py file to hold the tasks.
-# Ultimately that failed due to circular import issues.
-# I'll try it again later.
-
-# def make_celery(app):
-#     celery = current_celery_app
-#     # This may be what was causing a problem with the env variable configuration.
-#     # Bear this in mind if I try to update the env var names in future.
-#     celery.config_from_object(app.config, namespace="CELERY")
-#     return celery
 
 
 class ToolhubClient:
@@ -116,22 +102,10 @@ class ToolhubClient:
             tool_data.extend(api_response["results"])
         return tool_data
 
-    def put(self, tool, data):
-        """Take request data from the frontend and make a PUT request to Toolhub."""
-        url = f"{self.endpoint}{tool}/annotations/"
-        headers = dict(self.headers)
-        headers.update(
-            {"Authorization": f'Bearer {flask.session["token"]["access_token"]}'}
-        )
-        response = requests.put(url, data=data, headers=headers)
-        r = response.status_code
-        return r
-
-    def put_celery(self, tool, data, token):
+    def put(self, tool, data, token):
         """Take request data from the frontend and make a PUT request to Toolhub.
 
         This is routed through Celery
-        Currently a WIP
         """
         url = f"{self.endpoint}{tool}/annotations/"
         headers = dict(self.headers)
@@ -140,24 +114,11 @@ class ToolhubClient:
         api_response = response.json()
         return api_response
 
-    def get_celery(self, tool):
-        """Get data on a single tool and return a list
 
-        This is routed through Celery"""
-        url = f"{self.endpoint}{tool}"
-        try:
-            response = requests.get(url, headers=self.headers)
-            response.raise_for_status()
-        except requests.exceptions.HTTPError as e:
-            print("HTTP error - most likely no tool by that name exists")
-            print(e.args[0])
-        except requests.exceptions.ConnectionError:
-            print("Connection error.  Please try again.")
-        except requests.exceptions.Timeout:
-            print("Request timed out.")
-            # Could automatically retry
-        except requests.exceptions.RequestException as e:
-            print("Something went wrong.")
-            print(e)
-        api_response = response.json()
-        return api_response
+@shared_task
+def make_put_request(name_string, data_obj, token):
+    """Create a PUT task using Celery and ToolhubClient."""
+    from app import app
+
+    toolhub_client = ToolhubClient(app.config["TOOLHUB_API_ENDPOINT"])
+    return toolhub_client.put(name_string, data_obj, token)

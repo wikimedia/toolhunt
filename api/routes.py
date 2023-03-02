@@ -22,7 +22,13 @@ from api.schemas import (
     UserMetricsSchema,
     UserSchema,
 )
-from api.utils import ToolhubClient, build_request, generate_past_date, get_current_user
+from api.utils import (
+    ToolhubClient,
+    build_request,
+    generate_past_date,
+    get_current_user,
+    make_put_request,
+)
 
 toolhub_client = ToolhubClient(current_app.config["TOOLHUB_API_ENDPOINT"])
 
@@ -245,23 +251,40 @@ class TaskById(MethodView):
                 abort(409, message="This task has already been completed.")
             elif flask.session and flask.session["token"]:
                 tool = task_data["tool"]
-                data_obj = build_request(task_data)
-                result = toolhub_client.put(tool, data_obj)
-                if result == 200:
-                    username = get_current_user()
-                    task.user = username
-                    task.timestamp = datetime.datetime.now(datetime.timezone.utc)
-                    db.session.add(task)
-                    try:
-                        db.session.commit()
-                        return f'{task_data["field"]} successfully updated for {tool}.'
-                    except exc.DBAPIError as err:
-                        print(err)
-                        abort(503, message="Database connection failed.")
+                data = build_request(task_data)
+                token = flask.session["token"]["access_token"]
+                put_task = make_put_request.delay(tool, data, token)
+                response = put_task.get()
+                # If the response contains a "code" field, it failed.
+                if "code" in response:
+                    if response["code"] == 4004:
+                        abort(404, message="No such tool found in Toolhub's records.")
+                    elif response["code"] == "1000":
+                        # Yes, this response code is actually a string.  I am compiling a list for Bryan.
+                        res_message = response["errors"][0]["message"]
+                        abort(400, message=f"Validation failure. {res_message}")
                 else:
-                    abort(
-                        503, message="We were unable to insert the data into Toolhub."
-                    )
+                    # The alternative to an error message is a dict containing the annotations fields for the tool.
+                    # We check to make sure that the value we submitted matches the returned value.
+                    edited_field = task_data["field"]
+                    expected_value = task_data["value"]
+                    if response[edited_field] == expected_value:
+                        # If so, we update our database
+                        username = get_current_user()
+                        task.user = username
+                        task.timestamp = datetime.datetime.now(datetime.timezone.utc)
+                        db.session.add(task)
+                        try:
+                            db.session.commit()
+                            return f"{edited_field} successfully updated for {tool}."
+                        except exc.DBAPIError as err:
+                            print(err)
+                            abort(503, message="Database connection failed.")
+                    else:
+                        abort(
+                            503,
+                            message="We were unable to insert the data into Toolhub.",
+                        )
             else:
                 abort(401, message="User must be logged in to update a tool.")
         else:
@@ -284,48 +307,3 @@ class CurrentUser(MethodView):
             return username
         else:
             return response
-
-
-@user.route("/api/user/test_put")
-class TestCeleryPut(MethodView):
-    @tasks.response(200)
-    def get(self):
-        """This is just for testing"""
-        from app import make_put_request
-
-        if flask.session and flask.session["token"]:
-            tool_name = "testy-mc-deprecated-tool"
-            data_obj = {
-                "replaced_by": "333",
-                "comment": "still more toolhunt celery practice",
-            }
-            token = flask.session["token"]["access_token"]
-            task = make_put_request.delay(tool_name, data_obj, token)
-            response = task.get()
-            if response["code"]:
-                if response["code"] == 4004:
-                    abort(404, message="No such tool found in Toolhub's records.")
-                elif response["code"] == "1000":
-                    # Yes, this response code is actually a string.  I am compiling a list for Bryan.
-                    res_message = response["errors"][0]["message"]
-                    abort(400, message=f"Validation failure. {res_message}")
-            else:
-                # What I need to do now is check the value of the field in the response
-                # vs the value of the field that we submitted.
-                # If they are equal, then we're good!
-                return response
-
-        else:
-            abort(401, message="User must be logged in.")
-
-
-@user.route("/api/user/test_get")
-class TestCeleryGet(MethodView):
-    @tasks.response(200)
-    def get(self):
-        """This is just for testing"""
-        from app import make_get_request
-
-        tool_name = "testy-mc-deprecated-tool"
-        task = make_get_request.delay(tool_name)
-        return task.get()
