@@ -1,4 +1,6 @@
 import flask
+
+from celery import chain
 from flask import current_app
 from flask.views import MethodView
 from flask_smorest import Blueprint, abort
@@ -246,10 +248,7 @@ class TaskById(MethodView):
                 tool_name = form_data["tool"]
                 submission_data = build_request(form_data)
                 token = flask.session["token"]["access_token"]
-                celery_task = make_put_request.delay(tool_name, submission_data, token)
-                process_result(
-                    celery_task, task.id, form_data["field"], form_data["value"]
-                )
+                chain(make_put_request.s(tool_name, submission_data, token) | process_result.s(task.id, form_data["field"], form_data["value"]))()
                 return "Task sent."
             else:
                 abort(401, message="User must be logged in to update a tool.")
