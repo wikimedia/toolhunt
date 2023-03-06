@@ -139,6 +139,7 @@ click-plugins = ">=1.1.1"
 click-repl = ">=0.2.0"
 kombu = ">=5.2.3,<6.0"
 pytz = ">=2021.3"
+redis = {version = ">=3.4.1,<4.0.0 || >4.0.0,<4.0.1 || >4.0.1", optional = true, markers = "extra == \"redis\""}
 vine = ">=5.0.0,<6.0"
 
 [package.extras]
@@ -1485,4 +1486,4 @@ testing = ["flake8 (<5)", "func-timeout", "jaraco.functools", "jaraco.itertools"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "9309d08668b94bee2ed07a4ff1ae6bccdd61d5d65743b33224afd2a5606c6b71"
+content-hash = "8e49da97bf9bf004cf0f0c2b5ada2e2c7f50587e453fb620db094a40665aba23"

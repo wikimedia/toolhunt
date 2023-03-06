@@ -1,5 +1,3 @@
-import datetime
-
 import flask
 from flask import current_app
 from flask.views import MethodView
@@ -7,6 +5,7 @@ from flask_smorest import Blueprint, abort
 from sqlalchemy import desc, exc, func, text
 
 from api import db
+from api.async_tasks import make_put_request, process_result
 from api.models import Field, Task
 from api.schemas import (
     ContributionLimitSchema,
@@ -233,35 +232,25 @@ class TaskById(MethodView):
 
     @tasks.arguments(TaskCompleteSchema)
     @tasks.response(201)
-    def put(self, task_data, task_id):
+    def put(self, form_data, task_id):
         """Update a tool record on Toolhub."""
         task = Task.query.get_or_404(task_id)
         if (
             task
-            and task.tool_name == task_data["tool"]
-            and task.field_name == task_data["field"]
+            and task.tool_name == form_data["tool"]
+            and task.field_name == form_data["field"]
         ):
             if task.user is not None:
                 abort(409, message="This task has already been completed.")
             elif flask.session and flask.session["token"]:
-                tool = task_data["tool"]
-                data_obj = build_request(task_data)
-                result = toolhub_client.put(tool, data_obj)
-                if result == 200:
-                    username = get_current_user()
-                    task.user = username
-                    task.timestamp = datetime.datetime.now(datetime.timezone.utc)
-                    db.session.add(task)
-                    try:
-                        db.session.commit()
-                        return f'{task_data["field"]} successfully updated for {tool}.'
-                    except exc.DBAPIError as err:
-                        print(err)
-                        abort(503, message="Database connection failed.")
-                else:
-                    abort(
-                        503, message="We were unable to insert the data into Toolhub."
-                    )
+                tool_name = form_data["tool"]
+                submission_data = build_request(form_data)
+                token = flask.session["token"]["access_token"]
+                celery_task = make_put_request.delay(tool_name, submission_data, token)
+                process_result(
+                    celery_task, task.id, form_data["field"], form_data["value"]
+                )
+                return "Task sent."
             else:
                 abort(401, message="User must be logged in to update a tool.")
         else:

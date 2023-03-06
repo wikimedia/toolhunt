@@ -4,22 +4,22 @@ import flask
 import requests
 from flask_smorest import abort
 
+from api import oauth
 
-def build_request(task_data):
-    """Take data and return an object to PUT to Toolhub"""
-    field = task_data["field"]
-    value = task_data["value"]
+
+def build_request(form_data):
+    """Take form data and return a dict to PUT to Toolhub."""
+    field = form_data["field"]
+    value = form_data["value"]
     comment = f"Updated {field} using Toolhunt"
-    data = {}
-    data[field] = value
-    data["comment"] = comment
-    return data
+    submission_data = {}
+    submission_data[field] = value
+    submission_data["comment"] = comment
+    return submission_data
 
 
 def get_current_user():
     """Get the username of currently logged-in user."""
-    # This import is still throwing an error for me when I put it at the top of the file
-    from app import oauth  # noqa
 
     if not flask.session:
         abort(401, message="No user is currently logged in.")
@@ -101,13 +101,14 @@ class ToolhubClient:
             tool_data.extend(api_response["results"])
         return tool_data
 
-    def put(self, tool, data):
-        """Take request data from the frontend and make a PUT request to Toolhub."""
+    def put(self, tool, data, token):
+        """Take request data from the frontend and make a PUT request to Toolhub.
+
+        This is routed through Celery
+        """
         url = f"{self.endpoint}{tool}/annotations/"
         headers = dict(self.headers)
-        headers.update(
-            {"Authorization": f'Bearer {flask.session["token"]["access_token"]}'}
-        )
+        headers.update({"Authorization": f"Bearer {token}"})
         response = requests.put(url, data=data, headers=headers)
-        r = response.status_code
-        return r
+        api_response = response.json()
+        return api_response
