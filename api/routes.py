@@ -6,7 +6,7 @@ from flask_smorest import Blueprint, abort
 from sqlalchemy import desc, exc, func, text
 
 from api import db
-from api.async_tasks import make_put_request, process_result
+from api.async_tasks import check_result_status, make_put_request, update_db
 from api.models import Field, Task
 from api.schemas import (
     ContributionLimitSchema,
@@ -249,12 +249,8 @@ class TaskById(MethodView):
                 token = flask.session["token"]["access_token"]
                 chain(
                     make_put_request.s(tool_name, submission_data, token)
-                    | process_result.s(
-                        task.id,
-                        form_data["field"],
-                        form_data["value"],
-                        form_data["user"],
-                    )
+                    | check_result_status.s(form_data["field"], form_data["value"])
+                    | update_db.s(task.id, form_data["user"])
                 )()
                 return "Submission sent.  Thank you for your contribution!"
             else:

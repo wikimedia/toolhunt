@@ -23,41 +23,40 @@ def make_put_request(self, tool_name, submission_data, token):
         return result
 
 
-@shared_task()
-def process_result(result, task_id, edited_field, submitted_value, username):
+@shared_task(bind=True)
+def check_result_status(self, result, edited_field, submitted_value):
     # If the result contains a "code" field, it failed.
     # But this should never happen, as long as our validation is done correctly.
     if "code" in result:
         if result["code"] == 4004:
-            print("404 error received; No such tool found in Toolhub's records.")
-            return
+            message = "404 error received; No such tool found in Toolhub's records."
+            print(message)
+            return message
         elif result["code"] == "1000":
             # Yes, this response code is actually a string.  I am compiling a list for Bryan.
             res_message = result["errors"][0]["message"]
-            print(
-                f"Validation failure. Submitted {submitted_value} for {edited_field}, received following error: {res_message}"
-            )
+            message = f"Validation failure. Submitted {submitted_value} for {edited_field}, received following error: {res_message}"
+            print(message)
+            return message
     else:
-        # The alternative to an error message is a dict containing the annotations fields for the tool.
-        # We check to make sure that the value we submitted matches the returned value.
-        if result[edited_field] == submitted_value:
-            # If so, we update our database
-            task = Task.query.get(task_id)
-            tool_name = task.tool_name
-            task.user = username
-            task.timestamp = datetime.datetime.now(datetime.timezone.utc)
-            db.session.add(task)
-            try:
-                db.session.commit()
-                print(f"{edited_field} successfully updated for {tool_name}.")
-                return
-            except exc.DBAPIError as err:
-                print(err)
-                # I'd need to sort out a retry here, too
-                return
-        else:
-            # Another job for logging here.  We'd reach this point if the annotations
-            # data returned from Toolhub does not contain the information we just sent.
-            # I have no idea what set of circumstances could lead to this.
-            print("Something went wrong with inserting the data into Toolhub")
+        return "Status check passed"
+
+
+@shared_task(bind=True)
+def update_db(self, result, task_id, username):
+    if result == "Status check passed":
+        task = Task.query.get(task_id)
+        task.user = username
+        task.timestamp = datetime.datetime.now(datetime.timezone.utc)
+        db.session.add(task)
+        try:
+            db.session.commit()
+            print(f"{task.field_name} successfully updated for {task.tool_name}.")
             return
+        except exc.DBAPIError as err:
+            print(err)
+            # I'd need to sort out a retry here, too
+            return
+    else:
+        print(result)
+        return
