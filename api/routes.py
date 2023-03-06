@@ -248,8 +248,8 @@ class TaskById(MethodView):
                 tool_name = form_data["tool"]
                 submission_data = build_request(form_data)
                 token = flask.session["token"]["access_token"]
-                chain(make_put_request.s(tool_name, submission_data, token) | process_result.s(task.id, form_data["field"], form_data["value"]))()
-                return "Task sent."
+                chain(make_put_request.s(tool_name, submission_data, token) | process_result.s(task.id, form_data["field"], form_data["value"], form_data["user"]))()
+                return "Submission sent.  Thank you for your contribution!"
             else:
                 abort(401, message="User must be logged in to update a tool.")
         else:

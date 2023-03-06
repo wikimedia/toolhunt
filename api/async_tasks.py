@@ -24,7 +24,7 @@ def make_put_request(self, tool_name, submission_data, token):
 
 
 @shared_task()
-def process_result(result, task_id, edited_field, submitted_value):
+def process_result(result, task_id, edited_field, submitted_value, username):
     # If the result contains a "code" field, it failed.
     # But this should never happen, as long as our validation is done correctly.
     if "code" in result:
@@ -44,10 +44,6 @@ def process_result(result, task_id, edited_field, submitted_value):
             # If so, we update our database
             task = Task.query.get(task_id)
             tool_name = task.tool_name
-            # username = get_current_user()
-            # testing with hard coded user because I was getting logged out in between the
-            # execution of the put request task, and this task
-            username = "dummyuser"
             task.user = username
             task.timestamp = datetime.datetime.now(datetime.timezone.utc)
             db.session.add(task)
