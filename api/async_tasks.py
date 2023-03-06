@@ -55,8 +55,7 @@ def update_db(self, result, task_id, username):
             return
         except exc.DBAPIError as err:
             print(err)
-            # I'd need to sort out a retry here, too
-            return
+            raise self.retry(exc=err, countdown=5)
     else:
         print(result)
         return
