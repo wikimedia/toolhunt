@@ -1,4 +1,5 @@
 import datetime
+import json
 
 import flask
 import requests
@@ -8,9 +9,13 @@ from api import oauth
 
 
 def build_request(form_data):
-    """Take form data and return a dict to PUT to Toolhub."""
+    """Take form data and return a dict to PUT to Toolhub"""
+    multi_fields = ["audiences", "content_types", "tasks", "subject_domains"]
     field = form_data["field"]
-    value = form_data["value"]
+    if field in multi_fields:
+        value = form_data["value"].split(",")
+    else:
+        value = form_data["value"]
     comment = f"Updated {field} using Toolhunt"
     submission_data = {}
     submission_data[field] = value
@@ -50,7 +55,10 @@ def generate_past_date(days):
 
 class ToolhubClient:
     def __init__(self, endpoint):
-        self.headers = {"User-Agent": "Toolhunt API"}
+        self.headers = {
+            "User-Agent": "Toolhunt API",
+            "Content-Type": "application/json",
+        }
         self.endpoint = endpoint
 
     def get(self, tool):
@@ -109,6 +117,7 @@ class ToolhubClient:
         url = f"{self.endpoint}{tool}/annotations/"
         headers = dict(self.headers)
         headers.update({"Authorization": f"Bearer {token}"})
-        response = requests.put(url, data=data, headers=headers)
-        api_response = response.json()
-        return api_response
+        # Having to do a manual json.dumps() to ensure proper formatting
+        response = requests.put(url, data=json.dumps(data), headers=headers)
+        r = response.status_code
+        return r
