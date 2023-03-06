@@ -119,5 +119,5 @@ class ToolhubClient:
         headers.update({"Authorization": f"Bearer {token}"})
         # Having to do a manual json.dumps() to ensure proper formatting
         response = requests.put(url, data=json.dumps(data), headers=headers)
-        r = response.status_code
-        return r
+        api_response = response.json()
+        return api_response
