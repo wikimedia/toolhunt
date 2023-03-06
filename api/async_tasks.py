@@ -6,7 +6,7 @@ from sqlalchemy import exc
 
 from api import db
 from api.models import Task
-from api.utils import ToolhubClient, get_current_user
+from api.utils import ToolhubClient
 
 
 @shared_task(bind=True)
