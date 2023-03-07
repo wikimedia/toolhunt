@@ -8,7 +8,7 @@ from flask_smorest import abort
 from api import oauth
 
 
-def build_request(form_data):
+def build_put_request(form_data):
     """Take form data and return a dict to PUT to Toolhub"""
     multi_fields = ["audiences", "content_types", "tasks", "subject_domains"]
     field = form_data["field"]
