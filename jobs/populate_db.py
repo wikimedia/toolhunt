@@ -3,7 +3,7 @@ import os
 from pathlib import Path
 
 from sqlalchemy import create_engine, insert, select, text
-from sqlalchemy.orm import DeclarativeBase, sessionmaker
+from sqlalchemy.orm import sessionmaker
 
 from api.models import Field, Task, Tool
 from api.utils import ToolhubClient
@@ -23,48 +23,6 @@ Session = sessionmaker(engine)
 toolhub_client = ToolhubClient(TOOLHUB_API_ENDPOINT)
 
 
-class Base(DeclarativeBase):
-    pass
-
-
-# Not sure if I need the models, but if I'm not supposed to rely on an instance of the app,
-# then I can't get them from api.models, which imports the app instance of the db
-
-# To do this without flask I'm going to need to rewrite these tables
-
-
-# class Tool(Base):
-#     __tablename__ = "tool"
-#     __table_args__ = {"mysql_charset": "utf8mb4"}
-
-#     name = Column(String(255), primary_key=True, nullable=False)
-#     title = Column(String(255), nullable=False)
-#     description = Column(TEXT(65535), nullable=False)
-#     url = Column(String(2047), nullable=False)
-#     tasks = relationship("Task", backref="tool", lazy="dynamic")
-
-
-# class Field(Base):
-#     __tablename__ = "field"
-#     __table_args__ = {"mysql_charset": "utf8mb4"}
-
-#     name = Column(String(80), primary_key=True, nullable=False)
-#     description = Column(String(2047), nullable=False)
-#     tasks = relationship("Task", backref="field", lazy="dynamic")
-#     input_options = Column(JSON(), nullable=True)
-#     pattern = Column(String(320), nullable=True)
-
-
-# class Task(Base):
-#     __tablename__ = "task"
-#     __table_args__ = {"mysql_charset": "utf8mb4"}
-
-#     id = Column(Integer, primary_key=True)
-#     tool_name = Column(String(255), ForeignKey("tool.name"), nullable=False)
-#     field_name = Column(String(80), ForeignKey("field.name"), nullable=False)
-#     user = Column(String(255), nullable=True)
-#     timestamp = Column(DateTime, nullable=True)
-
 
 def insert_fields():
     """Insert data about annotations fields into the DB"""
@@ -75,13 +33,13 @@ def insert_fields():
         # because we are using .begin(), the session will be committed and closed here
 
 
-def begin_population():
+def bulk_population_job():
     """GETs all tools from toolhub and passes them to the populate function."""
     data_set = toolhub_client.get_all()
-    populate_db(data_set)
+    insert_into_db(data_set)
 
 
-def populate_db(data_set):
+def insert_into_db(data_set):
     """Accepts a list of dicts and runs each dict through the insertion process"""
     for tool in data_set:
         check_for_entry(tool)
@@ -184,13 +142,6 @@ def remove_tasks(fields, tool_name):
         ).bindparams(field_name=field, tool=tool_name)
         with Session.begin() as session:
             session.execute(query)
-        # The following print statement was firing whether a tool was deleted or not.
-        # It's nice that I can attempt to delete non-existent tasks without causing an error.
-        # Is it worth throwing in another check to see if a task exists and then deleting it?
-        # Then I could report what I was doing with more confidence.
-        # print(f"Removed {field} task associated with {tool_name}.")
-    # might be possible to do a bulk delete this way:
-    # session.execute(delete(Task).where(and_(Task.field_name.in_(fields), Task.tool_name == tool_name, Task.user.is_(None))
 
 
 def add_tasks(fields, tool_name):
