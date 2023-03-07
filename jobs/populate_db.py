@@ -23,7 +23,6 @@ Session = sessionmaker(engine)
 toolhub_client = ToolhubClient(TOOLHUB_API_ENDPOINT)
 
 
-
 def insert_fields():
     """Insert data about annotations fields into the DB"""
     with open(f"{BASE_DIR}/tests/fixtures/fields.json") as fields:

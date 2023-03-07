@@ -6,7 +6,7 @@ from api import db
 from api.models import Task
 from api.utils import ToolhubClient
 from app import app
-from jobs.populate_db import insert_fields, bulk_population_job, insert_into_db
+from jobs.populate_db import bulk_population_job, insert_fields, insert_into_db
 
 cli = FlaskGroup(app)
 toolhub_client = ToolhubClient(app.config["TOOLHUB_API_ENDPOINT"])
