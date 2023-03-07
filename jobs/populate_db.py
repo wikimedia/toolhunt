@@ -1,38 +1,15 @@
-import json
-import os
-from pathlib import Path
+from sqlalchemy import insert, select, text
 
-from sqlalchemy import create_engine, insert, select, text
-from sqlalchemy.orm import sessionmaker
-
-from api.models import Field, Task, Tool
+from api import db
+from api.models import Task, Tool
 from api.utils import ToolhubClient
+from app import app
 
-BASE_DIR = os.getenv("BASE_DIR", Path(__file__).parent.parent)
-TOOLHUB_API_ENDPOINT = os.getenv(
-    "TOOLHUB_API_ENDPOINT", "https://toolhub-demo.wmcloud.org/api/tools/"
-)
-SQLALCHEMY_DATABASE_URI = os.getenv(
-    "DATABASE_URL", "mysql://user:mypassword@db:3306/mydatabase?charset=utf8mb4"
-)
-SQLALCHEMY_TRACK_MODIFICATIONS = False
-
-
-engine = create_engine(SQLALCHEMY_DATABASE_URI)
-Session = sessionmaker(engine)
+TOOLHUB_API_ENDPOINT = app.config["TOOLHUB_API_ENDPOINT"]
 toolhub_client = ToolhubClient(TOOLHUB_API_ENDPOINT)
 
 
-def insert_fields():
-    """Insert data about annotations fields into the DB"""
-    with open(f"{BASE_DIR}/tests/fixtures/fields.json") as fields:
-        field_data = json.load(fields)
-        with Session.begin() as session:
-            session.bulk_insert_mappings(Field, field_data)
-        # because we are using .begin(), the session will be committed and closed here
-
-
-def bulk_population_job():
+def run_bulk_population_job():
     """GETs all tools from toolhub and passes them to the populate function."""
     data_set = toolhub_client.get_all()
     insert_into_db(data_set)
@@ -48,8 +25,7 @@ def insert_into_db(data_set):
 def check_for_entry(tool):
     """Receives a dict containing tool information and checks to see if it exists in the DB"""
     tool_name = tool["name"]
-    with Session() as session:
-        result = session.execute(select(Tool).where(Tool.name == tool_name)).all()
+    result = db.session.execute(select(Tool).where(Tool.name == tool_name)).all()
     # If an entry exists move on to the deprecation check
     if len(result) > 0:
         print(f"{tool_name} already exists in database")
@@ -66,9 +42,9 @@ def add_tool_entry(tool):
         "description": tool["description"],
         "url": tool["url"],
     }
-    with Session.begin() as session:
-        session.execute(insert(Tool), tool)
-        print(f"{tool['name']} inserted into db")
+    db.session.execute(insert(Tool), tool)
+    db.session.commit()
+    print(f"{tool['name']} inserted into db")
 
 
 def check_deprecation(tool):
@@ -139,8 +115,8 @@ def remove_tasks(fields, tool_name):
         query = text(
             "DELETE FROM task WHERE field_name = :field_name AND tool_name = :tool AND user IS NULL"
         ).bindparams(field_name=field, tool=tool_name)
-        with Session.begin() as session:
-            session.execute(query)
+        db.session.execute(query)
+        db.session.commit()
 
 
 def add_tasks(fields, tool_name):
@@ -149,17 +125,16 @@ def add_tasks(fields, tool_name):
         query = text(
             "SELECT * FROM task WHERE field_name = :field_name AND tool_name = :tool"
         ).bindparams(field_name=field, tool=tool_name)
-        with Session() as session:
-            result = session.execute(query).all()
-            # If we already have a task for that, we don't want to add a new one.
-            if len(result) > 0:
-                print(f"A task for {tool_name}, {field} already exists in the database")
-                continue
-            # But if we don't, we do
-            # Right now this is just doing it one by one
-            # A bulk insert would be more efficient, but I'll worry about that later
-            else:
-                task = {"tool_name": tool_name, "field_name": field}
-                session.execute(insert(Task), task)
-                session.commit()
-                print(f"Added {field} task for {tool_name}")
+        result = db.session.execute(query).all()
+        # If we already have a task for that, we don't want to add a new one.
+        if len(result) > 0:
+            print(f"A task for {tool_name}, {field} already exists in the database")
+            continue
+        # But if we don't, we do
+        # Right now this is just doing it one by one
+        # A bulk insert would be more efficient, but I'll worry about that later
+        else:
+            task = {"tool_name": tool_name, "field_name": field}
+            db.session.execute(insert(Task), task)
+            db.session.commit()
+            print(f"Added {field} task for {tool_name}")
