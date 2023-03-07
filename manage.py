@@ -3,25 +3,27 @@ import json
 from flask.cli import FlaskGroup
 
 from api import db
-from api.models import Task
-from api.utils import ToolhubClient
+from api.models import Field, Task
 from app import app
-from jobs.populate_db import bulk_population_job, insert_fields, insert_into_db
+from jobs.populate_db import insert_into_db, run_bulk_population_job
 
 cli = FlaskGroup(app)
-toolhub_client = ToolhubClient(app.config["TOOLHUB_API_ENDPOINT"])
 
 
 @cli.command("insert_fields")
-def run_field_insert():
-    """Inserts field data"""
-    insert_fields()
+def insert_fields():
+    """Insert data about annotations fields into the DB"""
+    BASE_DIR = app.config["BASE_DIR"]
+    with open(f"{BASE_DIR}/tests/fixtures/fields.json") as fields:
+        field_data = json.load(fields)
+        db.session.bulk_insert_mappings(Field, field_data)
+        db.session.commit()
 
 
 @cli.command("run_population_job")
 def run_population_job():
     """Fetches and inserts tool data from Toolhub"""
-    bulk_population_job()
+    run_bulk_population_job()
 
 
 @cli.command("run_test_population")
