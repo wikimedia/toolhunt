@@ -1,11 +1,12 @@
 import flask
+from celery import chain
 from flask import current_app
 from flask.views import MethodView
 from flask_smorest import Blueprint, abort
 from sqlalchemy import desc, exc, func, text
 
 from api import db
-from api.async_tasks import make_put_request, process_result
+from api.async_tasks import check_result_status, make_put_request, update_db
 from api.models import Field, Task
 from api.schemas import (
     ContributionLimitSchema,
@@ -246,11 +247,12 @@ class TaskById(MethodView):
                 tool_name = form_data["tool"]
                 submission_data = build_request(form_data)
                 token = flask.session["token"]["access_token"]
-                celery_task = make_put_request.delay(tool_name, submission_data, token)
-                process_result(
-                    celery_task, task.id, form_data["field"], form_data["value"]
-                )
-                return "Task sent."
+                chain(
+                    make_put_request.s(tool_name, submission_data, token)
+                    | check_result_status.s(form_data["field"], form_data["value"])
+                    | update_db.s(task.id, form_data["user"])
+                )()
+                return "Submission sent.  Thank you for your contribution!"
             else:
                 abort(401, message="User must be logged in to update a tool.")
         else:

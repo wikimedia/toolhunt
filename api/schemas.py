@@ -29,6 +29,7 @@ class TaskCompleteSchema(Schema):
     tool = fields.Str(required=True)
     field = fields.Str(required=True)
     value = fields.Str(required=True)
+    user = fields.Str(required=True)
 
 
 class ContributionSchema(Schema):
