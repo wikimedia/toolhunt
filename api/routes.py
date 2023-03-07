@@ -22,7 +22,12 @@ from api.schemas import (
     UserMetricsSchema,
     UserSchema,
 )
-from api.utils import ToolhubClient, build_request, generate_past_date, get_current_user
+from api.utils import (
+    ToolhubClient,
+    build_put_request,
+    generate_past_date,
+    get_current_user,
+)
 
 toolhub_client = ToolhubClient(current_app.config["TOOLHUB_API_ENDPOINT"])
 
@@ -245,7 +250,7 @@ class TaskById(MethodView):
                 abort(409, message="This task has already been completed.")
             elif flask.session and flask.session["token"]:
                 tool_name = form_data["tool"]
-                submission_data = build_request(form_data)
+                submission_data = build_put_request(form_data)
                 token = flask.session["token"]["access_token"]
                 chain(
                     make_put_request.s(tool_name, submission_data, token)
