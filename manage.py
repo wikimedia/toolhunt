@@ -1,38 +1,39 @@
 import json
+from pathlib import Path
 
 from flask.cli import FlaskGroup
 
 from api import db
-from api.models import Task
-from api.utils import ToolhubClient
+from api.models import Field, Task
 from app import app
-from jobs.populate_db import insert_fields, populate_db
+from jobs.populate_db import insert_into_db, run_bulk_population_job
 
 cli = FlaskGroup(app)
-toolhub_client = ToolhubClient(app.config["TOOLHUB_API_ENDPOINT"])
+BASE_DIR = app.config["BASE_DIR"]
 
 
 @cli.command("insert_fields")
-def run_field_insert():
-    """Inserts field data"""
-    insert_fields()
+def insert_fields():
+    """Insert data about annotations fields into the DB"""
+    with open(Path(f"{BASE_DIR}/tests/fixtures/fields.json")) as fields:
+        field_data = json.load(fields)
+        db.session.bulk_insert_mappings(Field, field_data)
+        db.session.commit()
 
 
-@cli.command("populate_db_initial")
-def run_populate_db():
+@cli.command("run_population_job")
+def run_population_job():
     """Fetches and inserts tool data from Toolhub"""
-    tool_data = toolhub_client.get_all()
-    populate_db(tool_data)
+    run_bulk_population_job()
 
 
-@cli.command("populate_db_test")
+@cli.command("run_test_population")
 def run_populate_db_test():
     """Inserts the test tool and task data into db"""
-    BASE_DIR = app.config["BASE_DIR"]
-    with open(f"{BASE_DIR}/tests/fixtures/data.json") as data:
+    with open(Path(f"{BASE_DIR}/tests/fixtures/data.json")) as data:
         test_data = json.load(data)
         test_tool_data = test_data[0]["tool_data"]
-        populate_db(test_tool_data)
+        insert_into_db(test_tool_data)
         test_task_data = test_data[1]["task_data"]
         db.session.bulk_insert_mappings(Task, test_task_data)
         db.session.commit()
