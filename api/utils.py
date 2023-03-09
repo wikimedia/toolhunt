@@ -69,16 +69,13 @@ class ToolhubClient:
             response = requests.get(url, headers=self.headers)
             response.raise_for_status()
         except requests.exceptions.HTTPError as e:
-            print("HTTP error - most likely no tool by that name exists")
-            print(e.args[0])
+            return f"HTTP error: {e.args[0]}"
         except requests.exceptions.ConnectionError:
-            print("Connection error.  Please try again.")
+            return "Connection error."
         except requests.exceptions.Timeout:
-            print("Request timed out.")
-            # Could automatically retry
+            return "Request timed out."
         except requests.exceptions.RequestException as e:
-            print("Something went wrong.")
-            print(e)
+            return f"Unexpected error: {e}"
         api_response = response.json()
         tool_data.append(api_response)
         return tool_data
@@ -90,16 +87,13 @@ class ToolhubClient:
             response = requests.get(url, headers=self.headers)
             response.raise_for_status()
         except requests.exceptions.HTTPError as e:
-            print("HTTP error")
-            print(e.args[0])
+            return f"HTTP error: {e.args[0]}"
         except requests.exceptions.ConnectionError:
-            print("Connection error.  Please try again.")
+            return "Connection error."
         except requests.exceptions.Timeout:
-            print("Request timed out.")
-            # Could automatically retry
+            return "Request timed out."
         except requests.exceptions.RequestException as e:
-            print("Something went wrong.")
-            print(e)
+            return f"Unexpected error: {e}"
         api_response = response.json()
         tool_data = api_response["results"]
         while api_response["next"]:
