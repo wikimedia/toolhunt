@@ -17,7 +17,6 @@ class BaseConfig:
         "CELERY_RESULT_BACKEND", default="redis://redis:6379/0"
     )
     TESTING = False
-    SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL", "sqlite://")
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     API_TITLE = "Toolhunt REST API"
     API_VERSION = "v1"
@@ -56,14 +55,17 @@ class DevelopmentConfig(BaseConfig):
 
     DEBUG = True
     TOOLHUB_API_ENDPOINT = "https://toolhub-demo.wmcloud.org/api/tools/"
-    SQLALCHEMY_DATABASE_URI=mysql://user:mypassword@db:3306/mydatabase?charset=utf8mb4
+    SQLALCHEMY_DATABASE_URI = (
+        "mysql://user:mypassword@db:3306/mydatabase?charset=utf8mb4"
+    )
 
 
 class ProductionTesting(BaseConfig):
     """Testing on Toolforge"""
+
     DEBUG = True
     TOOLHUB_API_ENDPOINT = "https://toolhub-demo.wmcloud.org/api/tools/"
-    SQLALCHEMY_DATABASE_URI="mysql+mysqldb://s55291@tools.db.svc.wikimedia.cloud/s55291__toolhunt_db?charset=utf8mb4"
+    SQLALCHEMY_DATABASE_URI = "mysql+mysqldb://s55291@tools.db.svc.wikimedia.cloud/s55291__toolhunt_db?charset=utf8mb4"
 
 
 class ProductionConfig(BaseConfig):
@@ -71,7 +73,11 @@ class ProductionConfig(BaseConfig):
 
     DEBUG = False
     TOOLHUB_API_ENDPOINT = "https://toolhub.wikimedia.org/api/tools/"
-    SQLALCHEMY_DATABASE_URI="mysql+mysqldb://s55291@tools.db.svc.wikimedia.cloud/s55291__toolhunt_db?charset=utf8mb4"
+    SQLALCHEMY_DATABASE_URI = "mysql+mysqldb://s55291@tools.db.svc.wikimedia.cloud/s55291__toolhunt_db?charset=utf8mb4"
 
 
-config = {"development": DevelopmentConfig, "production": ProductionConfig, "testing": ProductionTesting}
+config = {
+    "development": DevelopmentConfig,
+    "production": ProductionConfig,
+    "testing": ProductionTesting,
+}
