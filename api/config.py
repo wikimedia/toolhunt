@@ -36,7 +36,6 @@ class BaseConfig:
         "SECRET_KEY",
         default=os.urandom(128).decode("utf8", errors="ignore"),
     )
-    SERVER_NAME = os.getenv("SERVER_NAME", default="localhost:5000")
     TOOLHUB_CLIENT_ID = os.getenv("TOOLHUB_CLIENT_ID")
     TOOLHUB_CLIENT_SECRET = os.getenv("TOOLHUB_CLIENT_SECRET")
     TOOLHUB_ACCESS_TOKEN_URL = os.getenv(
