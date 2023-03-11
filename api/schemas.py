@@ -4,7 +4,7 @@ from marshmallow import Schema, fields
 class FieldSchema(Schema):
     name = fields.Str(required=True)
     description = fields.Str(required=True)
-    input_options = fields.Dict(required=False)
+    input_options = fields.Str(required=False)
     pattern = fields.Str(required=False)
 
 
