@@ -17,7 +17,9 @@ class BaseConfig:
         "CELERY_RESULT_BACKEND", default="redis://redis:6379/0"
     )
     TESTING = False
-    SQLALCHEMY_DATABASE_URI = os.getenv("DB_URI")
+    SQLALCHEMY_DATABASE_URI = os.getenv(
+        "DB_URI", default="mysql://user:mypassword@db:3306/mydatabase"
+    )
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     API_TITLE = "Toolhunt REST API"
     API_VERSION = "v1"
