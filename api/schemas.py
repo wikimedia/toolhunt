@@ -1,11 +1,23 @@
-from marshmallow import Schema, fields
+import json
+
+from marshmallow import Schema, fields, pre_dump
 
 
 class FieldSchema(Schema):
     name = fields.Str(required=True)
     description = fields.Str(required=True)
-    input_options = fields.Str(required=False)
+    input_options = fields.Dict(required=False)
     pattern = fields.Str(required=False)
+
+    @pre_dump
+    def serialize_input_options(self, data, many):
+        """Convert input_options from bytes obj to dict."""
+        if data.input_options:
+            input_options = data.input_options.decode().replace("'", '"')
+            data.input_options = json.loads(input_options)
+            return data
+        else:
+            return data
 
 
 class ToolSchema(Schema):
