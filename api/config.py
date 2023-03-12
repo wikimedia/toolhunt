@@ -59,14 +59,6 @@ class DevelopmentConfig(BaseConfig):
     )
 
 
-class ToolforgeTestConfig(BaseConfig):
-    """Testing on Toolforge"""
-
-    DEBUG = True
-    TOOLHUB_API_ENDPOINT = "https://toolhub-demo.wmcloud.org/api/tools/"
-    SQLALCHEMY_DATABASE_URI = os.getenv("DB_URI_TEST")
-
-
 class ProductionConfig(BaseConfig):
     """Production config"""
 
@@ -78,5 +70,4 @@ class ProductionConfig(BaseConfig):
 config = {
     "development": DevelopmentConfig,
     "production": ProductionConfig,
-    "testing": ToolforgeTestConfig,
 }
