@@ -13,12 +13,12 @@ class FieldSchema(Schema):
     def serialize_input_options(self, data):
         """Convert input_options from bytes obj to dict."""
         try:
-            if data.input_options and isinstance(data.input_options, dict) == False:
+            if data.input_options and isinstance(data.input_options, dict) is False:
                 input_options = data.input_options.decode().replace("'", '"')
                 data.input_options = json.loads(input_options)
                 return data
-        except:
-            print("An error occurred")
+        except Exception as e:
+            print(f"An error occurred: {e}")
 
         return data
 
