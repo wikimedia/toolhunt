@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: toolhunt-api.worker
+  namespace: tool-toolhunt-api
+  labels:
+    name: toolhunt-api.worker
+    # The toolforge=tool label will cause $HOME and other paths to be mounted from Toolforge
+    toolforge: tool
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: toolhunt-api.worker
+      toolforge: tool
+  template:
+    metadata:
+      labels:
+        name: toolhunt-api.worker
+        toolforge: tool
+    spec:
+      containers:
+        - name: bot
+          image: docker-registry.tools.wmflabs.org/toolforge-python39-sssd-base:latest
+          command:
+            [
+              "/data/project/toolhunt-api/www/python/src/compose/flask/celery/worker/toolforge-start.sh",
+            ]
+          workingDir: /data/project/toolhunt-api/www/python/src/
+          env:
+            - name: HOME
+              value: /data/project/toolhunt-api
+          imagePullPolicy: Always
