@@ -243,8 +243,8 @@ class TaskById(MethodView):
         task = Task.query.get_or_404(task_id)
         if (
             task
-            and task.tool_name == form_data["tool"]
-            and task.field_name == form_data["field"]
+            and task.tool_name.decode() == form_data["tool"]
+            and task.field_name.decode() == form_data["field"]
         ):
             if task.user is not None:
                 abort(409, message="This task has already been completed.")
