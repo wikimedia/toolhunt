@@ -12,7 +12,7 @@ class FieldSchema(Schema):
     @pre_dump
     def serialize_input_options(self, data, many):
         """Convert input_options from bytes obj to dict."""
-        if data.input_options:
+        if data.input_options and type(data.input_options) != dict:
             input_options = data.input_options.decode().replace("'", '"')
             data.input_options = json.loads(input_options)
             return data
