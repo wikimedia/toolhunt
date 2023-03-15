@@ -10,14 +10,17 @@ class FieldSchema(Schema):
     pattern = fields.Str(required=False)
 
     @pre_dump
-    def serialize_input_options(self, data, many):
+    def serialize_input_options(self, data):
         """Convert input_options from bytes obj to dict."""
-        if data.input_options and type(data.input_options) != dict:
-            input_options = data.input_options.decode().replace("'", '"')
-            data.input_options = json.loads(input_options)
-            return data
-        else:
-            return data
+        try:
+            if data.input_options and isinstance(data.input_options, dict) == False:
+                input_options = data.input_options.decode().replace("'", '"')
+                data.input_options = json.loads(input_options)
+                return data
+        except:
+            print("An error occurred")
+
+        return data
 
 
 class ToolSchema(Schema):
