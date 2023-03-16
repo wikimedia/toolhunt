@@ -40,7 +40,7 @@ class TaskSchema(Schema):
     timestamp = fields.DateTime(format="%Y-%m-%dT%H:%M:%S%z", required=False)
 
 
-class TaskCompleteSchema(Schema):
+class PutRequestSchema(Schema):
     tool = fields.Str(required=True)
     field = fields.Str(required=True)
     value = fields.Str(required=True)
@@ -49,9 +49,10 @@ class TaskCompleteSchema(Schema):
 
 class ContributionSchema(Schema):
     user = fields.Str(required=True)
-    timestamp = fields.DateTime(format="%Y-%m-%dT%H:%M:%S%z", required=True)
-    tool = fields.Nested(ToolSchema())
-    field_name = fields.Str(required=True)
+    completed_date = fields.DateTime(format="%Y-%m-%dT%H:%M:%S%z", required=True)
+    tool_name = fields.Str(required=True)
+    tool_title = fields.Str(required=True)
+    field = fields.Str(required=True)
 
 
 class ContributionLimitSchema(Schema):

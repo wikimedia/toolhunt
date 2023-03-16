@@ -7,15 +7,15 @@ from sqlalchemy import desc, exc, func, text
 
 from api import db
 from api.async_tasks import check_result_status, make_put_request, update_db
-from api.models import Field, Task
+from api.models import CompletedTask, Field, Task
 from api.schemas import (
     ContributionLimitSchema,
     ContributionSchema,
     ContributionsMetricsSchema,
     FieldSchema,
+    PutRequestSchema,
     ScoreLimitSchema,
     ScoreSchema,
-    TaskCompleteSchema,
     TaskSchema,
     TasksMetricsSchema,
     ToolsMetricsSchema,
@@ -46,15 +46,11 @@ class Contributions(MethodView):
         """List contributions made using Toolhunt."""
         if query_args:
             limit = query_args["limit"]
-            return (
-                Task.query.filter(Task.user.is_not(None))
-                .order_by(desc(Task.timestamp))
-                .limit(int(limit))
-            )
+            return CompletedTask.query.order_by(
+                desc(CompletedTask.completed_date)
+            ).limit(int(limit))
         else:
-            return Task.query.filter(Task.user.is_not(None)).order_by(
-                desc(Task.timestamp)
-            )
+            return CompletedTask.query.order_by(desc(CompletedTask.completed_date))
 
 
 @contributions.route("/api/contributions/<string:user>")
@@ -64,8 +60,8 @@ class ContributionsByUser(MethodView):
         """List the ten most recent contributions by a user."""
         # Ideally in the future we could introduce pagination and return all of a user's contributions
         return (
-            Task.query.filter(Task.user == user)
-            .order_by(desc(Task.timestamp))
+            CompletedTask.query.filter(CompletedTask.user == user)
+            .order_by(desc(CompletedTask.completed_date))
             .limit(10)
         )
 
@@ -79,11 +75,11 @@ class ContributionHighScores(MethodView):
         if query_args:
             end_date = generate_past_date(query_args["since"])
             scores_query = text(
-                "SELECT DISTINCT user, COUNT(*) AS 'score' FROM task WHERE user IS NOT NULL AND timestamp >= :date GROUP BY user ORDER BY 2 DESC LIMIT 30"
+                "SELECT DISTINCT user, COUNT(*) AS 'score' FROM completed_task WHERE completed_date >= :date GROUP BY user ORDER BY 2 DESC LIMIT 30"
             ).bindparams(date=end_date)
         else:
             scores_query = text(
-                "SELECT DISTINCT user, COUNT(*) AS 'score' FROM task WHERE user IS NOT NULL GROUP BY user ORDER BY 2 DESC LIMIT 30"
+                "SELECT DISTINCT user, COUNT(*) AS 'score' FROM completed_task GROUP BY user ORDER BY 2 DESC LIMIT 30"
             )
         results = db.session.execute(scores_query)
         scores = []
@@ -130,12 +126,12 @@ class ContributionsMetrics(MethodView):
             results = {}
             date_limit = generate_past_date(30)
             total = db.session.execute(
-                text("SELECT COUNT(*) FROM task WHERE user IS NOT NULL")
+                text("SELECT COUNT(*) FROM completed_task")
             ).all()
             results["Total_contributions"] = total[0][0]
             thirty_day = db.session.execute(
                 text(
-                    "SELECT COUNT(*) FROM task WHERE user IS NOT NULL AND timestamp >= :date"
+                    "SELECT COUNT(*) FROM completed_task WHERE completed_date >= :date"
                 ).bindparams(date=date_limit)
             ).all()
             results["Global_contributions_from_the_last_30_days"] = thirty_day[0][0]
@@ -236,7 +232,7 @@ class TaskById(MethodView):
         task = Task.query.get_or_404(task_id)
         return task
 
-    @tasks.arguments(TaskCompleteSchema)
+    @tasks.arguments(PutRequestSchema)
     @tasks.response(201)
     def put(self, form_data, task_id):
         """Update a tool record on Toolhub."""
@@ -246,16 +242,15 @@ class TaskById(MethodView):
             and task.tool_name.decode() == form_data["tool"]
             and task.field_name.decode() == form_data["field"]
         ):
-            if task.user is not None:
-                abort(409, message="This task has already been completed.")
-            elif flask.session and flask.session["token"]:
+            if flask.session and flask.session["token"]:
                 tool_name = form_data["tool"]
+                tool_title = task.tool.title.decode()
                 submission_data = build_put_request(form_data)
                 token = flask.session["token"]["access_token"]
                 chain(
                     make_put_request.s(tool_name, submission_data, token)
                     | check_result_status.s(form_data["field"], form_data["value"])
-                    | update_db.s(task.id, form_data["user"])
+                    | update_db.s(task.id, form_data, tool_title)
                 )()
                 return "Submission sent.  Thank you for your contribution!"
             else:

@@ -5,7 +5,7 @@ from flask import current_app
 from sqlalchemy import exc
 
 from api import db
-from api.models import Task
+from api.models import CompletedTask, Task
 from api.utils import ToolhubClient
 
 
@@ -43,15 +43,21 @@ def check_result_status(self, result, edited_field, submitted_value):
 
 
 @shared_task(bind=True, name="toolhunt-api.tasks.update_db")
-def update_db(self, result, task_id, username):
+def update_db(self, result, task_id, form_data, tool_title):
     if result == "Status check passed":
         task = Task.query.get(task_id)
-        task.user = username
-        task.timestamp = datetime.datetime.now(datetime.timezone.utc)
-        db.session.add(task)
+        completedTask = CompletedTask(
+            tool_name=form_data["tool"],
+            tool_title=tool_title,
+            field=form_data["field"],
+            user=form_data["user"],
+            completed_date=datetime.datetime.now(datetime.timezone.utc),
+        )
         try:
+            db.session.add(completedTask)
+            db.session.delete(task)
             db.session.commit()
-            print(f"{task.field_name} successfully updated for {task.tool_name}.")
+            print("DB update successful.")
             return
         except exc.DBAPIError as err:
             print(err)
