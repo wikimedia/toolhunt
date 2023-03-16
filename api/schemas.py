@@ -10,10 +10,10 @@ class FieldSchema(Schema):
     pattern = fields.Str(required=False)
 
     @pre_dump
-    def serialize_input_options(self, data, many):
+    def serialize_input_options(self, data, **kwargs):
         """Convert input_options from bytes obj to dict."""
         try:
-            if data.input_options and isinstance(data.input_options, dict) is False:
+            if data.input_options and not isinstance(data.input_options, dict):
                 input_options = data.input_options.decode().replace("'", '"')
                 data.input_options = json.loads(input_options)
                 return data
