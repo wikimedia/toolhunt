@@ -221,7 +221,7 @@ class TaskList(MethodView):
     @tasks.response(200, TaskSchema(many=True))
     def get(self):
         "Get ten incomplete tasks."
-        return Task.query.filter(Task.user.is_(None)).order_by(func.random()).limit(10)
+        return Task.query.order_by(func.random()).limit(10)
 
 
 @tasks.route("/api/tasks/<string:task_id>")

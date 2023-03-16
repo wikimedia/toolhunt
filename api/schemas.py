@@ -36,8 +36,6 @@ class TaskSchema(Schema):
     tool = fields.Nested(ToolSchema(), dump_only=True)
     field_name = fields.Str(required=True, load_only=True)
     field = fields.Nested(FieldSchema(), dump_only=True)
-    user = fields.Str(required=False)
-    timestamp = fields.DateTime(format="%Y-%m-%dT%H:%M:%S%z", required=False)
 
 
 class PutRequestSchema(Schema):
