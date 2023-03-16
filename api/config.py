@@ -10,12 +10,15 @@ class BaseConfig:
     """Base config"""
 
     BASE_DIR = Path(__file__).parent.parent
+    BASE_PREFIX = os.getenv("BASE_PREFIX")
+    CELERY_BROKER_TRANSPORT_OPTIONS = {"global_keyprefix": f"{BASE_PREFIX}toolhunt-api"}
     CELERY_BROKER_URL = os.environ.get(
         "CELERY_BROKER_URL", default="redis://redis:6379/0"
     )
     CELERY_RESULT_BACKEND = os.environ.get(
         "CELERY_RESULT_BACKEND", default="redis://redis:6379/0"
     )
+    CELERY_TASK_DEFAULT_QUEUE = "toolhunt-api.default"
     TESTING = False
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     API_TITLE = "Toolhunt REST API"
