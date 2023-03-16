@@ -10,6 +10,7 @@ class Tool(db.Model):
     description = db.Column(db.TEXT(65535), nullable=False)
     url = db.Column(db.String(2047), nullable=False)
     tasks = db.relationship("Task", backref="tool", lazy="dynamic")
+    last_updated = db.Column(db.DateTime, nullable=False)
 
 
 class Field(db.Model):
@@ -30,5 +31,20 @@ class Task(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     tool_name = db.Column(db.String(255), db.ForeignKey("tool.name"), nullable=False)
     field_name = db.Column(db.String(80), db.ForeignKey("field.name"), nullable=False)
+    # can remove user and timestamp columns at the end of refactoring process
     user = db.Column(db.String(255), nullable=True)
     timestamp = db.Column(db.DateTime, nullable=True)
+    # currently unused, but can be used in future to limit results of GET /api/tasks
+    last_attempted = db.Column(db.DateTime, nullable=True)
+
+
+class CompletedTask(db.Model):
+    __tablename__ = "completed_task"
+    __table_args__ = {"mysql_charset": "binary"}
+
+    id = db.Column(db.Integer, primary_key=True)
+    tool_name = db.Column(db.String(255), nullable=False)
+    tool_title = db.Column(db.String(255), nullable=False)
+    field = db.Column(db.String(80), nullable=False)
+    user = db.Column(db.String(255), nullable=False)
+    completed_date = db.Column(db.DateTime, nullable=False)
