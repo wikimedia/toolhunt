@@ -10,7 +10,7 @@ class FieldSchema(Schema):
     pattern = fields.Str(required=False)
 
     @pre_dump
-    def serialize_input_options(self, data):
+    def serialize_input_options(self, data, many):
         """Convert input_options from bytes obj to dict."""
         try:
             if data.input_options and isinstance(data.input_options, dict) is False:
