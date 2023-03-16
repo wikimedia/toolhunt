@@ -31,10 +31,6 @@ class Task(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     tool_name = db.Column(db.String(255), db.ForeignKey("tool.name"), nullable=False)
     field_name = db.Column(db.String(80), db.ForeignKey("field.name"), nullable=False)
-    # can remove user and timestamp columns at the end of refactoring process
-    user = db.Column(db.String(255), nullable=True)
-    timestamp = db.Column(db.DateTime, nullable=True)
-    # currently unused, but can be used in future to limit results of GET /api/tasks
     last_attempted = db.Column(db.DateTime, nullable=True)
 
 
