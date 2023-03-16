@@ -307,98 +307,114 @@
     "task_data": [
       {
         "tool_name": "testy-mc-full-tool",
-        "field_name": "audiences",
-        "timestamp": "2022-12-12T10:29:01.226141",
+        "tool_title": "Testy McFull-Tool",
+        "field": "audiences",
+        "completed_date": "2022-12-12T10:29:01.226141",
         "user": "Demo Unicorn"
       },
       {
         "tool_name": "testy-mc-full-tool",
-        "field_name": "content_types",
-        "timestamp": "2022-12-13T10:29:01.226141",
+        "tool_title": "Testy McFull-Tool",
+        "field": "content_types",
+        "completed_date": "2022-12-13T10:29:01.226141",
         "user": "Demo Unicorn"
       },
       {
         "tool_name": "testy-mc-full-tool",
-        "field_name": "tasks",
-        "timestamp": "2022-12-20T10:29:01.226141",
+        "tool_title": "Testy McFull-Tool",
+        "field": "tasks",
+        "completed_date": "2022-12-20T10:29:01.226141",
         "user": "Demo Unicorn"
       },
       {
         "tool_name": "testy-mc-full-tool",
-        "field_name": "subject_domains",
-        "timestamp": "2022-12-24T10:29:01.226141",
+        "tool_title": "Testy McFull-Tool",
+        "field": "subject_domains",
+        "completed_date": "2022-12-24T10:29:01.226141",
         "user": "Demo Unicorn"
       },
       {
         "tool_name": "testy-mc-full-tool",
-        "field_name": "for_wikis",
-        "timestamp": "2023-01-01T10:29:01.226141",
+        "tool_title": "Testy McFull-Tool",
+        "field": "for_wikis",
+        "completed_date": "2023-01-01T10:29:01.226141",
         "user": "NicoleLBee"
       },
       {
         "tool_name": "testy-mc-full-tool",
-        "field_name": "icon",
-        "timestamp": "2023-01-05T10:29:01.226141",
+        "tool_title": "Testy McFull-Tool",
+        "field": "icon",
+        "completed_date": "2023-01-05T10:29:01.226141",
         "user": "Hannah Waruguru"
       },
       {
         "tool_name": "testy-mc-full-tool",
-        "field_name": "available_ui_languages",
-        "timestamp": "2023-01-10T10:29:01.226141",
+        "tool_title": "Testy McFull-Tool",
+        "field": "available_ui_languages",
+        "completed_date": "2023-01-10T10:29:01.226141",
         "user": "Hannah Waruguru"
       },
       {
         "tool_name": "testy-mc-full-tool",
-        "field_name": "tool_type",
-        "timestamp": "2023-01-12T10:29:01.226141",
+        "tool_title": "Testy McFull-Tool",
+        "field": "tool_type",
+        "completed_date": "2023-01-12T10:29:01.226141",
         "user": "Hannah Waruguru"
       },
       {
         "tool_name": "testy-mc-full-tool",
-        "field_name": "repository",
-        "timestamp": "2023-01-13T10:29:01.226141",
+        "tool_title": "Testy McFull-Tool",
+        "field": "repository",
+        "completed_date": "2023-01-13T10:29:01.226141",
         "user": "BDavis (WMF)"
       },
       {
         "tool_name": "testy-mc-full-tool",
-        "field_name": "api_url",
-        "timestamp": "2023-01-22T10:29:01.226141",
+        "tool_title": "Testy McFull-Tool",
+        "field": "api_url",
+        "completed_date": "2023-01-22T10:29:01.226141",
         "user": "BDavis (WMF)"
       },
       {
         "tool_name": "testy-mc-full-tool",
-        "field_name": "developer_docs_url",
-        "timestamp": "2023-01-31T10:29:01.226141",
+        "tool_title": "Testy McFull-Tool",
+        "field": "developer_docs_url",
+        "completed_date": "2023-01-31T10:29:01.226141",
         "user": "BDavis (WMF)"
       },
       {
         "tool_name": "testy-mc-full-tool",
-        "field_name": "user_docs_url",
-        "timestamp": "2023-02-01T10:29:01.226141",
+        "tool_title": "Testy McFull-Tool",
+        "field": "user_docs_url",
+        "completed_date": "2023-02-01T10:29:01.226141",
         "user": "BDavis (WMF)"
       },
       {
         "tool_name": "testy-mc-full-tool",
-        "field_name": "feedback_url",
-        "timestamp": "2023-02-08T10:29:01.226141",
+        "tool_title": "Testy McFull-Tool",
+        "field": "feedback_url",
+        "completed_date": "2023-02-08T10:29:01.226141",
         "user": "BDavis (WMF)"
       },
       {
         "tool_name": "testy-mc-full-tool",
-        "field_name": "privacy_policy_url",
-        "timestamp": "2023-02-12T10:29:01.226141",
+        "tool_title": "Testy McFull-Tool",
+        "field": "privacy_policy_url",
+        "completed_date": "2023-02-12T10:29:01.226141",
         "user": "Sage (Wiki Ed)"
       },
       {
         "tool_name": "testy-mc-full-tool",
-        "field_name": "translate_url",
-        "timestamp": "2023-02-13T10:29:01.226141",
+        "tool_title": "Testy McFull-Tool",
+        "field": "translate_url",
+        "completed_date": "2023-02-13T10:29:01.226141",
         "user": "Sage (Wiki Ed)"
       },
       {
         "tool_name": "testy-mc-full-tool",
-        "field_name": "bugtracker_url",
-        "timestamp": "2023-02-14T10:29:01.226141",
+        "tool_title": "Testy McFull-Tool",
+        "field": "bugtracker_url",
+        "completed_date": "2023-02-14T10:29:01.226141",
         "user": "Sage (Wiki Ed)"
       }
     ]
