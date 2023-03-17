@@ -2,7 +2,7 @@ import datetime
 from dataclasses import dataclass
 from typing import Any
 
-from sqlalchemy import delete, text
+from sqlalchemy import and_, delete, select
 from sqlalchemy.dialects.mysql import insert
 
 from api import db
@@ -102,10 +102,10 @@ def upsert_tool(tool: ToolhuntTool, timestamp):
     db.session.commit()
 
 
-def remove_stale_tools(expiration_days: int = 1):
+def remove_stale_tools(timestamp):
     """Removes expired tools from the Tool table."""
-    limit = datetime.datetime.now() - datetime.timedelta(days=expiration_days)
-    delete_stmt = delete(Tool).where(Tool.last_updated < limit)
+    timestamp_str = timestamp.strftime("%Y-%m-%d %H:%M:%S")
+    delete_stmt = delete(Tool).where(Tool.last_updated != timestamp_str)
     db.session.execute(delete_stmt)
     db.session.commit()
 
@@ -115,33 +115,45 @@ def update_tool_table(tools: list[ToolhuntTool], timestamp, **kwargs):
 
     [upsert_tool(tool, timestamp) for tool in tools]
 
-    remove_stale_tools()
+    remove_stale_tools(timestamp)
 
 
-def insert_task(tool_name: str, field: str):
-    """Inserts a tool in the Tool table if it doesn't exist."""
-    query = text(
-        "SELECT * FROM task WHERE field_name = :field AND tool_name = :tool_name"
-    ).bindparams(field=field, tool_name=tool_name)
-    result = db.session.execute(query).all()
-    if not result:
+def insert_or_update_task(tool_name: str, field: str, timestamp):
+    """Inserts a task in the Tool table if it doesn't exist or updates a timestamp."""
+    select_stmt = select(Task).filter(
+        and_(Task.tool_name == tool_name, Task.field_name == field)
+    )
+    try:
+        task = db.session.execute(select_stmt).scalar_one()
+        task.last_updated = timestamp
+    except Exception:
         insert_stmt = insert(Task).values(
-            tool_name=tool_name,
-            field_name=field,
+            tool_name=tool_name, field_name=field, last_updated=timestamp
         )
         db.session.execute(insert_stmt)
-        db.session.commit()
+    db.session.commit()
 
 
-def update_task_table(tools: list[ToolhuntTool]):
+def remove_stale_tasks(timestamp):
+    """Removes expired tasks from the Task table."""
+    timestamp_str = timestamp.strftime("%Y-%m-%d %H:%M:%S")
+    delete_stmt = delete(Task).where(Task.last_updated != timestamp_str)
+    db.session.execute(delete_stmt)
+    db.session.commit()
+
+
+def update_task_table(tools: list[ToolhuntTool], timestamp):
     """Inserts task records"""
 
     for tool in tools:
         for field in tool.missing_annotations:
-            insert_task(tool.name, field)
+            insert_or_update_task(tool.name, field, timestamp)
+
+    remove_stale_tasks(timestamp)
 
 
 # Pipeline
+# This will populate the db if empty, or update all tool and task records if not.
 
 
 def run_pipeline(**kwargs):
@@ -152,8 +164,4 @@ def run_pipeline(**kwargs):
     # Load
     timestamp = datetime.datetime.now(datetime.timezone.utc)
     update_tool_table(tools_clean_data, timestamp)
-    update_task_table(tools_clean_data)
-
-
-# This will populate the db if empty, or update all tool and task records if not.
-# run_pipeline()
+    update_task_table(tools_clean_data, timestamp)
