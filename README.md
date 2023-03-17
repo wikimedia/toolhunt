@@ -70,9 +70,11 @@ This needs to be done first, before adding tool data.
 
 ### Adding test data to the Database
 
-The mock data set contains three tools and a set of completed tasks. When run, the function `run_test_population` will put the tools through the insertion process and auto-generate tasks, as it would with "real" data.
+The mock data set contains three tools and a set of completed tasks. When run, the function `load_mock_data` will put the tools through the insertion process and auto-generate tasks, as it would with "real" data.
 
-- From the command line, `docker-compose exec flask-web python manage.py run_test_population`
+It will also enter completed tasks into the `completed_task` table in the database.
+
+- From the command line, `docker-compose exec flask-web python manage.py load_mock_data`
 
 The results will appear on the command line. This command may be run multiple times; observe the command line messages to see what changes when a tool and/or task is already present in the DB.
 
@@ -80,9 +82,9 @@ The set of completed tasks will allow us to test that the high scores, user cont
 
 ### Adding a full data set from Toolhub to the Database
 
-- From the command line, `docker-compose exec flask-web python manage.py run_population_job`
+- From the command line, `docker-compose exec flask-web python manage.py update_db`
 
-While in development mode, this fetch request draws data from the Toolhub Test Server. It can be run prior to or following `run_test_population`.
+While in development mode, the fetch request associated with this pipeline draws data from the Toolhub Test Server. This command can be run prior to or following `load_mock_data`.
 
 ## Running local CI and tests
 

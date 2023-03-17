@@ -22,15 +22,15 @@ def insert_fields():
         db.session.commit()
 
 
-@cli.command("run_population_job")
-def run_population_job():
+@cli.command("update_db")
+def update_db():
     """Fetches and inserts tool data from Toolhub"""
     run_pipeline()
 
 
-@cli.command("run_test_population")
-def run_populate_db_test():
-    """Inserts the test tool and task data into db"""
+@cli.command("load_mock_data")
+def load_mock_data():
+    """Inserts the mock tool and task data into db"""
     with open(Path(f"{BASE_DIR}/tests/fixtures/data.json")) as data:
         test_data = json.load(data)
         test_tool_data = test_data[0]["tool_data"]
