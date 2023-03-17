@@ -42,17 +42,17 @@ class ToolhuntTool:
     deprecated: bool
 
     @property
-    def is_completed(self) -> bool:
+    def is_completed(self):
         return len(self.missing_annotations) == 0
 
 
-def is_deprecated(tool: dict[str, Any]) -> bool:
+def is_deprecated(tool: dict[str, Any]):
     return tool["deprecated"] or tool["annotations"]["deprecated"]
 
 
 def get_missing_annotations(
     tool_info: dict[str, Any], filter_by: set[str] = ANNOTATIONS
-) -> set[str]:
+):
     missing = set()
 
     for k, v in tool_info["annotations"].items():
@@ -63,7 +63,7 @@ def get_missing_annotations(
     return missing
 
 
-def clean_tool_data(tool_data: list[dict[str, any]]) -> list[ToolhuntTool]:
+def clean_tool_data(tool_data: list[dict[str, any]]):
     tools = []
     for tool in tool_data:
         t = ToolhuntTool(
@@ -82,7 +82,7 @@ def clean_tool_data(tool_data: list[dict[str, any]]) -> list[ToolhuntTool]:
 # Load
 
 
-def upsert_tool(tool: ToolhuntTool, timestamp) -> None:
+def upsert_tool(tool: ToolhuntTool, timestamp):
     """Inserts a tool in the Tool table if it doesn't exist, and updates it if it does."""
 
     insert_stmt = insert(Tool).values(
@@ -102,7 +102,7 @@ def upsert_tool(tool: ToolhuntTool, timestamp) -> None:
     db.session.commit()
 
 
-def remove_stale_tools(expiration_days: int = 1) -> None:
+def remove_stale_tools(expiration_days: int = 1):
     """Removes expired tools from the Tool table."""
     limit = datetime.datetime.now() - datetime.timedelta(days=expiration_days)
     delete_stmt = delete(Tool).where(Tool.last_updated < limit)
@@ -110,7 +110,7 @@ def remove_stale_tools(expiration_days: int = 1) -> None:
     db.session.commit()
 
 
-def update_tool_table(tools: list[ToolhuntTool], timestamp, **kwargs) -> None:
+def update_tool_table(tools: list[ToolhuntTool], timestamp, **kwargs):
     """Upserts tool records and removes stale tools"""
 
     [upsert_tool(tool, timestamp) for tool in tools]
@@ -118,13 +118,13 @@ def update_tool_table(tools: list[ToolhuntTool], timestamp, **kwargs) -> None:
     remove_stale_tools()
 
 
-def insert_task(tool_name: str, field: str) -> None:
+def insert_task(tool_name: str, field: str):
     """Inserts a tool in the Tool table if it doesn't exist."""
     query = text(
         "SELECT * FROM task WHERE field_name = :field AND tool_name = :tool_name"
     ).bindparams(field=field, tool_name=tool_name)
     result = db.session.execute(query).all()
-    if len(result) == 0:
+    if not result:
         insert_stmt = insert(Task).values(
             tool_name=tool_name,
             field_name=field,
@@ -133,19 +133,18 @@ def insert_task(tool_name: str, field: str) -> None:
         db.session.commit()
 
 
-def update_task_table(tools: list[ToolhuntTool]) -> None:
+def update_task_table(tools: list[ToolhuntTool]):
     """Inserts task records"""
 
     for tool in tools:
-        tool_name = tool.name
         for field in tool.missing_annotations:
-            insert_task(tool_name, field)
+            insert_task(tool.name, field)
 
 
 # Pipeline
 
 
-def run_pipeline(**kwargs) -> None:
+def run_pipeline(**kwargs):
     # Extract
     tools_raw_data = toolhub_client.get_all()
     # Transform
