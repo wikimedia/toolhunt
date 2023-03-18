@@ -6,9 +6,9 @@ from sqlalchemy import and_, delete, select
 from sqlalchemy.dialects.mysql import insert
 
 from api import db
+from api.logging import logger
 from api.models import Task, Tool
 from api.utils import ToolhubClient
-from api.logging import logger
 from app import app
 
 TOOLHUB_API_ENDPOINT = app.config["TOOLHUB_API_ENDPOINT"]
