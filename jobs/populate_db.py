@@ -8,6 +8,7 @@ from sqlalchemy.dialects.mysql import insert
 from api import db
 from api.models import Task, Tool
 from api.utils import ToolhubClient
+from api.logging import logger
 from app import app
 
 TOOLHUB_API_ENDPOINT = app.config["TOOLHUB_API_ENDPOINT"]
@@ -158,10 +159,18 @@ def update_task_table(tools: list[ToolhuntTool], timestamp):
 
 def run_pipeline(**kwargs):
     # Extract
-    tools_raw_data = toolhub_client.get_all()
-    # Transform
-    tools_clean_data = clean_tool_data(tools_raw_data)
-    # Load
-    timestamp = datetime.datetime.now(datetime.timezone.utc)
-    update_tool_table(tools_clean_data, timestamp)
-    update_task_table(tools_clean_data, timestamp)
+    try:
+        logger.info("Starting database update...")
+        tools_raw_data = toolhub_client.get_all()
+        logger.info("Raw data received.  Cleaning...")
+        # Transform
+        tools_clean_data = clean_tool_data(tools_raw_data)
+        logger.info("Raw data cleaned.  Updating tools..")
+        # Load
+        timestamp = datetime.datetime.now(datetime.timezone.utc)
+        update_tool_table(tools_clean_data, timestamp)
+        logger.info("Tools updated.  Updating tasks...")
+        update_task_table(tools_clean_data, timestamp)
+        logger.info("Tasks updated.  Database update completed.")
+    except Exception as err:
+        logger.error(f"{err.args}")
