@@ -1,6 +1,5 @@
 import datetime
 from dataclasses import dataclass
-from typing import Any
 
 from sqlalchemy import and_, delete, select
 from sqlalchemy.dialects.mysql import insert
@@ -47,13 +46,11 @@ class ToolhuntTool:
         return len(self.missing_annotations) == 0
 
 
-def is_deprecated(tool: dict[str, Any]):
+def is_deprecated(tool):
     return tool["deprecated"] or tool["annotations"]["deprecated"]
 
 
-def get_missing_annotations(
-    tool_info: dict[str, Any], filter_by: set[str] = ANNOTATIONS
-):
+def get_missing_annotations(tool_info, filter_by=ANNOTATIONS):
     missing = set()
 
     for k, v in tool_info["annotations"].items():
@@ -64,7 +61,7 @@ def get_missing_annotations(
     return missing
 
 
-def clean_tool_data(tool_data: list[dict[str, any]]):
+def clean_tool_data(tool_data):
     tools = []
     for tool in tool_data:
         t = ToolhuntTool(
@@ -83,7 +80,7 @@ def clean_tool_data(tool_data: list[dict[str, any]]):
 # Load
 
 
-def upsert_tool(tool: ToolhuntTool, timestamp):
+def upsert_tool(tool, timestamp):
     """Inserts a tool in the Tool table if it doesn't exist, and updates it if it does."""
 
     insert_stmt = insert(Tool).values(
@@ -111,7 +108,7 @@ def remove_stale_tools(timestamp):
     db.session.commit()
 
 
-def update_tool_table(tools: list[ToolhuntTool], timestamp, **kwargs):
+def update_tool_table(tools, timestamp, **kwargs):
     """Upserts tool records and removes stale tools"""
 
     [upsert_tool(tool, timestamp) for tool in tools]
@@ -119,7 +116,7 @@ def update_tool_table(tools: list[ToolhuntTool], timestamp, **kwargs):
     remove_stale_tools(timestamp)
 
 
-def insert_or_update_task(tool_name: str, field: str, timestamp):
+def insert_or_update_task(tool_name, field, timestamp):
     """Inserts a task in the Tool table if it doesn't exist or updates a timestamp."""
     select_stmt = select(Task).filter(
         and_(Task.tool_name == tool_name, Task.field_name == field)
@@ -143,7 +140,7 @@ def remove_stale_tasks(timestamp):
     db.session.commit()
 
 
-def update_task_table(tools: list[ToolhuntTool], timestamp):
+def update_task_table(tools, timestamp):
     """Inserts task records"""
 
     for tool in tools:
