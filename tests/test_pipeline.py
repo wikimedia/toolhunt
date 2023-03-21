@@ -16,5 +16,6 @@ def run_test_pipeline(raw_data_set):
         update_tool_table(tools_clean_data, timestamp)
         logger.info("Tools updated.  Updating tasks.")
         update_task_table(tools_clean_data, timestamp)
+        logger.info("Tasks updated.  DB population complete.")
     except Exception as err:
         logger.error(f"{err.args}")
