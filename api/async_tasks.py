@@ -33,7 +33,6 @@ def check_result_status(self, result, edited_field, submitted_value):
             print(message)
             return message
         elif result["code"] == "1000":
-            # Yes, this response code is actually a string.  I am compiling a list for Bryan.
             res_message = result["errors"][0]["message"]
             message = f"Validation failure. Submitted {submitted_value} for {edited_field}, received following error: {res_message}"
             print(message)
