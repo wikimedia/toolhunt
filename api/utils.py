@@ -68,20 +68,11 @@ class ToolhubClient:
         try:
             response = requests.get(url, headers=self.headers)
             response.raise_for_status()
-        except requests.exceptions.HTTPError as e:
-            abort(message="HTTP error - most likely no tool by that name exists")
-            print(e.args[0])
-        except requests.exceptions.ConnectionError:
-            abort(message="Connection error.  Please try again.")
-        except requests.exceptions.Timeout:
-            abort(message="Request timed out.")
-            # Could automatically retry
+            api_response = response.json()
+            tool_data.append(api_response)
+            return tool_data
         except requests.exceptions.RequestException as e:
-            abort(message=f"Something went wrong.  Error: {e}")
             print(e)
-        api_response = response.json()
-        tool_data.append(api_response)
-        return tool_data
 
     def get_all(self):
         """Get data on all Toolhub tools."""
@@ -89,25 +80,16 @@ class ToolhubClient:
         try:
             response = requests.get(url, headers=self.headers)
             response.raise_for_status()
-        except requests.exceptions.HTTPError as e:
-            abort(message="HTTP error")
-            print(e.args[0])
-        except requests.exceptions.ConnectionError:
-            abort(message="Connection error.  Please try again.")
-        except requests.exceptions.Timeout:
-            abort(message="Request timed out.")
-            # Could automatically retry
+            api_response = response.json()
+            tool_data = api_response["results"]
+            while api_response["next"]:
+                api_response = requests.get(
+                    api_response["next"], headers=self.headers
+                ).json()
+                tool_data.extend(api_response["results"])
+            return tool_data
         except requests.exceptions.RequestException as e:
-            abort(message=f"Something went wrong.  Error: {e}")
             print(e)
-        api_response = response.json()
-        tool_data = api_response["results"]
-        while api_response["next"]:
-            api_response = requests.get(
-                api_response["next"], headers=self.headers
-            ).json()
-            tool_data.extend(api_response["results"])
-        return tool_data
 
     def put(self, tool, data, token):
         """Take request data from the frontend and make a PUT request to Toolhub.
