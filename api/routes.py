@@ -148,14 +148,19 @@ class TaskMetrics(MethodView):
         """Get metrics pertaining to Toolhunt tasks."""
         try:
             results = {}
-            total = db.session.execute(text("SELECT COUNT(*) FROM task")).all()
-            results["Number_of_tasks_in_the_Toolhunt_database"] = total[0][0]
-            incomplete = db.session.execute(
-                text("SELECT COUNT(*) FROM task WHERE user IS NULL")
+            completed_tasks = db.session.execute(
+                text("SELECT COUNT(*) FROM completed_task")
             ).all()
-            results["Number_of_unfinished_tasks_in_the_Toolhunt_database"] = incomplete[
-                0
-            ][0]
+            incomplete_tasks = db.session.execute(
+                text("SELECT COUNT(*) FROM task")
+            ).all()
+            results["Number_of_tasks_in_the_Toolhunt_database"] = (
+                completed_tasks[0][0] + incomplete_tasks[0][0]
+            )
+
+            results[
+                "Number_of_unfinished_tasks_in_the_Toolhunt_database"
+            ] = incomplete_tasks[0][0]
             return results
         except exc.OperationalError as err:
             print(err)
@@ -169,11 +174,9 @@ class ToolMetrics(MethodView):
         """Get metrics pertaining to tools."""
         try:
             results = {}
-            total = db.session.execute(text("SELECT COUNT(*) FROM tool")).all()
-            results["Number_of_tools_on_record"] = total[0][0]
-            missing_info = db.session.execute(
-                text("SELECT COUNT(DISTINCT tool_name) FROM task WHERE user IS NULL")
-            ).all()
+            total = toolhub_client.get_count()
+            results["Number_of_tools_on_record"] = total
+            missing_info = db.session.execute(text("SELECT COUNT(*) FROM tool")).all()
             results["Number_of_tools_with_incomplete_information"] = missing_info[0][0]
             return results
         except exc.OperationalError as err:
@@ -192,14 +195,14 @@ class UserMetrics(MethodView):
             try:
                 results = {}
                 total_cont = db.session.execute(
-                    text("SELECT COUNT(*) FROM task WHERE user = :user").bindparams(
-                        user=user
-                    )
+                    text(
+                        "SELECT COUNT(*) FROM completed_task WHERE user = :user"
+                    ).bindparams(user=user)
                 ).all()
                 results["My_total_contributions"] = total_cont[0][0]
                 thirty_cont = db.session.execute(
                     text(
-                        "SELECT COUNT(*) FROM task WHERE user = :user AND timestamp >= :date"
+                        "SELECT COUNT(*) FROM completed_task WHERE user = :user AND completed_date >= :date"
                     ).bindparams(user=user, date=date_limit)
                 ).all()
                 results["My_contributions_in_the_past_30_days"] = thirty_cont[0][0]
