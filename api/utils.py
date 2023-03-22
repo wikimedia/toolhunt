@@ -91,6 +91,18 @@ class ToolhubClient:
         except requests.exceptions.RequestException as e:
             print(e)
 
+    def get_count(self):
+        """Get number of tools on Toolhub."""
+        url = f"{self.endpoint}"
+        try:
+            response = requests.get(url, headers=self.headers)
+            response.raise_for_status()
+            api_response = response.json()
+            count = api_response["count"]
+            return count
+        except requests.exceptions.RequestException as e:
+            print(e)
+
     def put(self, tool, data, token):
         """Take request data from the frontend and make a PUT request to Toolhub.
 
