@@ -4,9 +4,10 @@ from pathlib import Path
 from flask.cli import FlaskGroup
 
 from api import db
-from api.models import Field, Task
+from api.models import CompletedTask, Field
 from app import app
-from jobs.populate_db import insert_into_db, run_bulk_population_job
+from jobs.populate_db import run_pipeline
+from tests.test_pipeline import run_test_pipeline
 
 cli = FlaskGroup(app)
 BASE_DIR = app.config["BASE_DIR"]
@@ -21,21 +22,21 @@ def insert_fields():
         db.session.commit()
 
 
-@cli.command("run_population_job")
-def run_population_job():
+@cli.command("update_db")
+def update_db():
     """Fetches and inserts tool data from Toolhub"""
-    run_bulk_population_job()
+    run_pipeline()
 
 
-@cli.command("run_test_population")
-def run_populate_db_test():
-    """Inserts the test tool and task data into db"""
+@cli.command("load_mock_data")
+def load_mock_data():
+    """Inserts the mock tool and task data into db"""
     with open(Path(f"{BASE_DIR}/tests/fixtures/data.json")) as data:
         test_data = json.load(data)
         test_tool_data = test_data[0]["tool_data"]
-        insert_into_db(test_tool_data)
+        run_test_pipeline(test_tool_data)
         test_task_data = test_data[1]["task_data"]
-        db.session.bulk_insert_mappings(Task, test_task_data)
+        db.session.bulk_insert_mappings(CompletedTask, test_task_data)
         db.session.commit()
 
 

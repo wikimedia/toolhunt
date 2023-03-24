@@ -9,7 +9,10 @@ class Tool(db.Model):
     title = db.Column(db.String(255), nullable=False)
     description = db.Column(db.TEXT(65535), nullable=False)
     url = db.Column(db.String(2047), nullable=False)
-    tasks = db.relationship("Task", backref="tool", lazy="dynamic")
+    tasks = db.relationship(
+        "Task", backref="tool", cascade="all, delete", lazy="dynamic"
+    )
+    last_updated = db.Column(db.DateTime, nullable=False)
 
 
 class Field(db.Model):
@@ -28,7 +31,21 @@ class Task(db.Model):
     __table_args__ = {"mysql_charset": "binary"}
 
     id = db.Column(db.Integer, primary_key=True)
-    tool_name = db.Column(db.String(255), db.ForeignKey("tool.name"), nullable=False)
+    tool_name = db.Column(
+        db.String(255), db.ForeignKey("tool.name", ondelete="CASCADE"), nullable=False
+    )
     field_name = db.Column(db.String(80), db.ForeignKey("field.name"), nullable=False)
-    user = db.Column(db.String(255), nullable=True)
-    timestamp = db.Column(db.DateTime, nullable=True)
+    last_attempted = db.Column(db.DateTime, nullable=True)
+    last_updated = db.Column(db.DateTime, nullable=False)
+
+
+class CompletedTask(db.Model):
+    __tablename__ = "completed_task"
+    __table_args__ = {"mysql_charset": "binary"}
+
+    id = db.Column(db.Integer, primary_key=True)
+    tool_name = db.Column(db.String(255), nullable=False)
+    tool_title = db.Column(db.String(255), nullable=False)
+    field = db.Column(db.String(80), nullable=False)
+    user = db.Column(db.String(255), nullable=False)
+    completed_date = db.Column(db.DateTime, nullable=False)
