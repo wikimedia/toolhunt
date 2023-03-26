@@ -44,13 +44,24 @@ class Contributions(MethodView):
     @contributions.response(200, ContributionSchema(many=True))
     def get(self, query_args):
         """List contributions made using Toolhunt."""
-        if query_args:
-            limit = query_args["limit"]
-            return CompletedTask.query.order_by(
-                desc(CompletedTask.completed_date)
-            ).limit(int(limit))
-        else:
-            return CompletedTask.query.order_by(desc(CompletedTask.completed_date))
+        try:
+            # Ping the db before executing the "real" query
+            # Saves me from having to use more try/except blocks
+            db.session.execute(text("SELECT 1"))
+            if query_args:
+                limit = query_args["limit"]
+                contributions = CompletedTask.query.order_by(
+                    desc(CompletedTask.completed_date)
+                ).limit(int(limit))
+                return contributions
+            else:
+                contributions = CompletedTask.query.order_by(
+                    desc(CompletedTask.completed_date)
+                )
+                return contributions
+        except exc.SQLAlchemyError as err:
+            print(err)
+            abort(503, message="Database connection failed.  Please try again.")
 
 
 @contributions.route("/api/contributions/<string:user>")
@@ -59,11 +70,16 @@ class ContributionsByUser(MethodView):
     def get(self, user):
         """List the ten most recent contributions by a user."""
         # Ideally in the future we could introduce pagination and return all of a user's contributions
-        return (
-            CompletedTask.query.filter(CompletedTask.user == user)
-            .order_by(desc(CompletedTask.completed_date))
-            .limit(10)
-        )
+        try:
+            completed_tasks = (
+                CompletedTask.query.filter(CompletedTask.user == user)
+                .order_by(desc(CompletedTask.completed_date))
+                .limit(10)
+            )
+            return completed_tasks
+        except exc.SQLAlchemyError as err:
+            print(err)
+            abort(503, message="Database connection failed.  Please try again.")
 
 
 @contributions.route("/api/contributions/top-scores")
@@ -72,21 +88,25 @@ class ContributionHighScores(MethodView):
     @contributions.response(200, ScoreSchema(many=True))
     def get(self, query_args):
         """List the most prolific Toolhunters, by number of contributions."""
-        if query_args:
-            end_date = generate_past_date(query_args["since"])
-            scores_query = text(
-                "SELECT DISTINCT user, COUNT(*) AS 'score' FROM completed_task WHERE completed_date >= :date GROUP BY user ORDER BY 2 DESC LIMIT 30"
-            ).bindparams(date=end_date)
-        else:
-            scores_query = text(
-                "SELECT DISTINCT user, COUNT(*) AS 'score' FROM completed_task GROUP BY user ORDER BY 2 DESC LIMIT 30"
-            )
-        results = db.session.execute(scores_query)
-        scores = []
-        for row in results:
-            result = {"user": row[0], "score": row[1]}
-            scores.append(result)
-        return scores
+        try:
+            if query_args:
+                end_date = generate_past_date(query_args["since"])
+                scores_query = text(
+                    "SELECT DISTINCT user, COUNT(*) AS 'score' FROM completed_task WHERE completed_date >= :date GROUP BY user ORDER BY 2 DESC LIMIT 30"
+                ).bindparams(date=end_date)
+            else:
+                scores_query = text(
+                    "SELECT DISTINCT user, COUNT(*) AS 'score' FROM completed_task GROUP BY user ORDER BY 2 DESC LIMIT 30"
+                )
+            results = db.session.execute(scores_query)
+            scores = []
+            for row in results:
+                result = {"user": row[0], "score": row[1]}
+                scores.append(result)
+            return scores
+        except exc.SQLAlchemyError as err:
+            print(err)
+            abort(503, message="Database connection failed.  Please try again.")
 
 
 fields = Blueprint(
@@ -99,7 +119,12 @@ class FieldList(MethodView):
     @fields.response(200, FieldSchema(many=True))
     def get(self):
         """List all annotations fields."""
-        return Field.query.all()
+        try:
+            field_list = Field.query.all()
+            return field_list
+        except exc.SQLAlchemyError as err:
+            print(err)
+            abort(503, message="Database connection failed.  Please try again.")
 
 
 @fields.route("/api/fields/<string:name>")
@@ -107,7 +132,12 @@ class FieldInformation(MethodView):
     @fields.response(200, FieldSchema)
     def get(self, name):
         """Get information about an annotations field."""
-        return Field.query.get_or_404(name)
+        try:
+            field_data = Field.query.get_or_404(name)
+            return field_data
+        except exc.SQLAlchemyError as err:
+            print(err)
+            abort(503, message="Database connection failed.  Please try again.")
 
 
 metrics = Blueprint(
@@ -136,7 +166,7 @@ class ContributionsMetrics(MethodView):
             ).all()
             results["Global_contributions_from_the_last_30_days"] = thirty_day[0][0]
             return results
-        except exc.OperationalError as err:
+        except exc.SQLAlchemyError as err:
             print(err)
             abort(503, message="Database connection failed.  Please try again.")
 
@@ -162,7 +192,7 @@ class TaskMetrics(MethodView):
                 "Number_of_unfinished_tasks_in_the_Toolhunt_database"
             ] = incomplete_tasks[0][0]
             return results
-        except exc.OperationalError as err:
+        except exc.SQLAlchemyError as err:
             print(err)
             abort(503, message="Database connection failed.  Please try again.")
 
@@ -179,7 +209,7 @@ class ToolMetrics(MethodView):
             missing_info = db.session.execute(text("SELECT COUNT(*) FROM tool")).all()
             results["Number_of_tools_with_incomplete_information"] = missing_info[0][0]
             return results
-        except exc.OperationalError as err:
+        except exc.SQLAlchemyError as err:
             print(err)
             abort(503, message="Database connection failed.  Please try again.")
 
@@ -207,7 +237,7 @@ class UserMetrics(MethodView):
                 ).all()
                 results["My_contributions_in_the_past_30_days"] = thirty_cont[0][0]
                 return results
-            except exc.OperationalError as err:
+            except exc.SQLAlchemyError as err:
                 print(err)
                 abort(503, message="Database connection failed.  Please try again.")
         else:
@@ -224,7 +254,12 @@ class TaskList(MethodView):
     @tasks.response(200, TaskSchema(many=True))
     def get(self):
         "Get ten incomplete tasks."
-        return Task.query.order_by(func.random()).limit(10)
+        try:
+            task_list = Task.query.order_by(func.random()).limit(10)
+            return task_list
+        except exc.SQLAlchemyError as err:
+            print(err)
+            abort(503, message="Database connection failed.  Please try again.")
 
 
 @tasks.route("/api/tasks/<string:task_id>")
@@ -232,34 +267,44 @@ class TaskById(MethodView):
     @tasks.response(200, TaskSchema)
     def get(self, task_id):
         """Get information about a specific task."""
-        task = Task.query.get_or_404(task_id)
-        return task
+        try:
+            task = Task.query.get_or_404(task_id)
+            return task
+        except exc.SQLAlchemyError as err:
+            print(err)
+            abort(503, message="Database connection failed.  Please try again.")
 
     @tasks.arguments(PutRequestSchema)
     @tasks.response(201)
     def put(self, form_data, task_id):
         """Update a tool record on Toolhub."""
-        task = Task.query.get_or_404(task_id)
-        if (
-            task
-            and task.tool_name.decode() == form_data["tool"]
-            and task.field_name.decode() == form_data["field"]
-        ):
-            if flask.session and flask.session["token"]:
-                tool_name = form_data["tool"]
-                tool_title = task.tool.title.decode()
-                submission_data = build_put_request(form_data)
-                token = flask.session["token"]["access_token"]
-                chain(
-                    make_put_request.s(tool_name, submission_data, token)
-                    | check_result_status.s(form_data["field"], form_data["value"])
-                    | update_db.s(task.id, form_data, tool_title)
-                )()
-                return "Submission sent.  Thank you for your contribution!"
+        try:
+            task = Task.query.get_or_404(task_id)
+            if (
+                task
+                and task.tool_name.decode() == form_data["tool"]
+                and task.field_name.decode() == form_data["field"]
+            ):
+                if flask.session and flask.session["token"]:
+                    tool_name = form_data["tool"]
+                    tool_title = task.tool.title.decode()
+                    submission_data = build_put_request(form_data)
+                    token = flask.session["token"]["access_token"]
+                    chain(
+                        make_put_request.s(tool_name, submission_data, token)
+                        | check_result_status.s(form_data["field"], form_data["value"])
+                        | update_db.s(task.id, form_data, tool_title)
+                    )()
+                    return "Submission sent.  Thank you for your contribution!"
+                else:
+                    abort(401, message="User must be logged in to update a tool.")
             else:
-                abort(401, message="User must be logged in to update a tool.")
-        else:
-            abort(400, message="The data given doesn't match the task specifications.")
+                abort(
+                    400, message="The data given doesn't match the task specifications."
+                )
+        except exc.SQLAlchemyError as err:
+            print(err)
+            abort(503, message="Database connection failed.  Please try again.")
 
 
 user = Blueprint(
