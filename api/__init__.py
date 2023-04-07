@@ -7,7 +7,7 @@ from flask_migrate import Migrate
 from flask_smorest import Api
 from flask_sqlalchemy import SQLAlchemy
 
-from api.config import config, BaseConfig
+from api.config import BaseConfig, config
 
 api = Api()
 db = SQLAlchemy()
@@ -19,7 +19,7 @@ ext = FlaskCeleryExt()
 def create_app():
     config_name = os.environ.get("FLASK_CONFIG", "development")
     app = Flask(__name__)
-    
+
     with app.app_context():
         app.config.from_object(config[config_name])
 
