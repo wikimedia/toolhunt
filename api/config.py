@@ -38,6 +38,7 @@ class BaseConfig:
     )
     TOOLHUB_CLIENT_ID = os.getenv("TOOLHUB_CLIENT_ID")
     TOOLHUB_CLIENT_SECRET = os.getenv("TOOLHUB_CLIENT_SECRET")
+    TOOLHUB_OAUTH_NAME = os.getenv("TOOLHUB_OAUTH_NAME", default="toolhub")
     TOOLHUB_ACCESS_TOKEN_URL = os.getenv(
         "TOOLHUB_ACCESS_TOKEN_URL", default="https://toolhub-demo.wmcloud.org/o/token/"
     )
