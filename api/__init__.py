@@ -7,7 +7,7 @@ from flask_migrate import Migrate
 from flask_smorest import Api
 from flask_sqlalchemy import SQLAlchemy
 
-from api.config import config
+from api.config import config, BaseConfig
 
 api = Api()
 db = SQLAlchemy()
@@ -16,11 +16,10 @@ oauth = OAuth()
 ext = FlaskCeleryExt()
 
 
-def create_app(config_name=None):
-    if config_name is None:
-        config_name = os.environ.get("FLASK_CONFIG", "development")
-
+def create_app():
+    config_name = os.environ.get("FLASK_CONFIG", "development")
     app = Flask(__name__)
+    
     with app.app_context():
         app.config.from_object(config[config_name])
 
@@ -28,7 +27,15 @@ def create_app(config_name=None):
         ext.init_app(app)
         db.init_app(app)
         oauth.init_app(app)
-        oauth.register(name="toolhub")
+        oauth.register(
+            name=BaseConfig.TOOLHUB_OAUTH_NAME,
+            access_token_url=BaseConfig.TOOLHUB_ACCESS_TOKEN_URL,
+            access_token_params=None,
+            authorize_url=BaseConfig.TOOLHUB_AUTHORIZE_URL,
+            authorize_params=None,
+            api_base_url=BaseConfig.TOOLHUB_API_BASE_URL,
+            client_kwargs=None,
+        )
         # register blueprints
         from api.routes import contributions, fields, metrics, tasks, user  # noqa
 
