@@ -7,7 +7,7 @@ from sqlalchemy import desc, exc, func, text
 
 from api import db
 from api.async_tasks import check_result_status, make_put_request, update_db
-from api.models import CompletedTask, Field, Task
+from api.models import CompletedTask, Field, Task, Tool
 from api.schemas import (
     ContributionLimitSchema,
     ContributionSchema,
@@ -226,6 +226,20 @@ class TaskList(MethodView):
         "Get ten incomplete tasks."
         return Task.query.order_by(func.random()).limit(10)
 
+@tasks.route("/api/tasks/tool/<string:tool_name>")
+class TaskByTool(MethodView):
+    @tasks.response(200, TaskSchema(many=True))
+    def get(self, tool_name):
+        "Get a set of tasks for a given tool."
+        try:   
+            # If tool_test fails then the tool name is bad and we can stop.
+            tool_test = Tool.query.get_or_404(tool_name)
+            if (tool_test):
+                tasks = Task.query.filter_by(tool_name = tool_name)
+                return tasks
+        except exc.OperationalError as err:
+            print(err)
+            abort(503, message="Database connection failed.  Please try again.")
 
 @tasks.route("/api/tasks/<string:task_id>")
 class TaskById(MethodView):
