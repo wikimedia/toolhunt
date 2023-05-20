@@ -22,9 +22,9 @@ class BaseConfig:
     TESTING = False
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_ENGINE_OPTIONS = {
-    'pool_pre_ping': True,
-    'pool_recycle': 280,
-    'pool_size': 100
+        "pool_pre_ping": True,
+        "pool_recycle": 280,
+        "pool_size": 100,
     }
     API_TITLE = "Toolhunt REST API"
     API_VERSION = "v1"
