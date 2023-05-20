@@ -21,6 +21,7 @@ class BaseConfig:
     CELERY_TASK_DEFAULT_QUEUE = "toolhunt-api.default"
     TESTING = False
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    SQLALCHEMY_POOL_RECYCLE = 280
     API_TITLE = "Toolhunt REST API"
     API_VERSION = "v1"
     OPENAPI_VERSION = "3.0.3"
