@@ -226,20 +226,22 @@ class TaskList(MethodView):
         "Get ten incomplete tasks."
         return Task.query.order_by(func.random()).limit(10)
 
+
 @tasks.route("/api/tasks/tool/<string:tool_name>")
 class TaskByTool(MethodView):
     @tasks.response(200, TaskSchema(many=True))
     def get(self, tool_name):
         "Get a set of tasks for a given tool."
-        try:   
+        try:
             # If tool_test fails then the tool name is bad and we can stop.
             tool_test = Tool.query.get_or_404(tool_name)
-            if (tool_test):
-                tasks = Task.query.filter_by(tool_name = tool_name)
+            if tool_test:
+                tasks = Task.query.filter_by(tool_name=tool_name)
                 return tasks
         except exc.OperationalError as err:
             print(err)
             abort(503, message="Database connection failed.  Please try again.")
+
 
 @tasks.route("/api/tasks/type/<string:task_type>")
 class TaskByType(MethodView):
@@ -247,12 +249,13 @@ class TaskByType(MethodView):
     def get(self, task_type):
         "Get a set of tasks of a selected type."
         # Could expand to select multiple task types
-        try:   
-            tasks = Task.query.filter_by(field_name = task_type).limit(10)
+        try:
+            tasks = Task.query.filter_by(field_name=task_type).limit(10)
             return tasks
         except exc.OperationalError as err:
             print(err)
             abort(503, message="Database connection failed.  Please try again.")
+
 
 @tasks.route("/api/tasks/<string:task_id>")
 class TaskById(MethodView):
@@ -299,14 +302,12 @@ class ToolNames(MethodView):
     @tools.response(200)
     def get(self):
         """Get the human-readable titles of all tools, and their Toolhub names."""
-        try: 
-            # This will work, as long as there are no tools with the 
+        try:
+            # This will work, as long as there are no tools with the
             # title "allTitles", and no duplicate names
             # Seems improbable, but not impossible
             response = db.session.execute(text("SELECT name, title FROM tool")).all()
-            titleCollection = {
-                "allTitles": []
-            }
+            titleCollection = {"allTitles": []}
             for tool in response:
                 titleCollection[tool.title.decode()] = tool.name.decode()
                 titleCollection["allTitles"].append(tool.title.decode())
@@ -314,6 +315,7 @@ class ToolNames(MethodView):
         except exc.OperationalError as err:
             print(err)
             abort(503, message="Database connection failed.  Please try again.")
+
 
 user = Blueprint(
     "user", __name__, description="Get information about the currently logged-in user."

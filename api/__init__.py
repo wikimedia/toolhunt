@@ -37,7 +37,14 @@ def create_app():
             client_kwargs=None,
         )
         # register blueprints
-        from api.routes import contributions, fields, metrics, tasks, tools, user  # noqa
+        from api.routes import (  # noqa
+            contributions,
+            fields,
+            metrics,
+            tasks,
+            tools,
+            user,
+        )
 
         api.register_blueprint(tasks)
         api.register_blueprint(contributions)
