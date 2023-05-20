@@ -241,6 +241,19 @@ class TaskByTool(MethodView):
             print(err)
             abort(503, message="Database connection failed.  Please try again.")
 
+@tasks.route("/api/tasks/type/<string:task_type>")
+class TaskByType(MethodView):
+    @tasks.response(200, TaskSchema(many=True))
+    def get(self, task_type):
+        "Get a set of tasks of a selected type."
+        # Could expand to select multiple task types
+        try:   
+            tasks = Task.query.filter_by(field_name = task_type).limit(10)
+            return tasks
+        except exc.OperationalError as err:
+            print(err)
+            abort(503, message="Database connection failed.  Please try again.")
+
 @tasks.route("/api/tasks/<string:task_id>")
 class TaskById(MethodView):
     @tasks.response(200, TaskSchema)
