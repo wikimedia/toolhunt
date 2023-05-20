@@ -276,6 +276,32 @@ class TaskById(MethodView):
             abort(400, message="The data given doesn't match the task specifications.")
 
 
+tools = Blueprint(
+    "tools", __name__, description="Get information about the tools in our database."
+)
+
+
+@tools.route("/api/tools/names")
+class ToolNames(MethodView):
+    @tools.response(200)
+    def get(self):
+        """Get the human-readable titles of all tools, and their Toolhub names."""
+        try: 
+            # This will work, as long as there are no tools with the 
+            # title "allTitles", and no duplicate names
+            # Seems improbable, but not impossible
+            response = db.session.execute(text("SELECT name, title FROM tool")).all()
+            titleCollection = {
+                "allTitles": []
+            }
+            for tool in response:
+                titleCollection[tool.title.decode()] = tool.name.decode()
+                titleCollection["allTitles"].append(tool.title.decode())
+            return titleCollection
+        except exc.OperationalError as err:
+            print(err)
+            abort(503, message="Database connection failed.  Please try again.")
+
 user = Blueprint(
     "user", __name__, description="Get information about the currently logged-in user."
 )
@@ -283,7 +309,7 @@ user = Blueprint(
 
 @user.route("/api/user")
 class CurrentUser(MethodView):
-    @tasks.response(200, UserSchema)
+    @user.response(200, UserSchema)
     def get(self):
         """Get the username of the currently logged-in user."""
         response = get_current_user()

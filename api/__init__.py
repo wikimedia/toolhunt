@@ -37,12 +37,13 @@ def create_app():
             client_kwargs=None,
         )
         # register blueprints
-        from api.routes import contributions, fields, metrics, tasks, user  # noqa
+        from api.routes import contributions, fields, metrics, tasks, tools, user  # noqa
 
         api.register_blueprint(tasks)
         api.register_blueprint(contributions)
         api.register_blueprint(fields)
         api.register_blueprint(metrics)
+        api.register_blueprint(tools)
         api.register_blueprint(user)
         migrate.init_app(app, db)
 
