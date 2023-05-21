@@ -2,7 +2,7 @@ import datetime
 
 from celery import shared_task
 from flask import current_app
-from sqlalchemy import exc, delete
+from sqlalchemy import delete, exc
 
 from api import db
 from api.models import CompletedTask, Task
