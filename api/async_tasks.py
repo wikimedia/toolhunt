@@ -2,7 +2,7 @@ import datetime
 
 from celery import shared_task
 from flask import current_app
-from sqlalchemy import exc
+from sqlalchemy import exc, delete
 
 from api import db
 from api.models import CompletedTask, Task
@@ -50,9 +50,8 @@ def update_db(self, result, task_id, form_data, tool_title):
         )
         try:
             db.session.add(completedTask)
-            db.session.commit()
-            task = Task.query.get(task_id)
-            db.session.delete(task)
+            deleteStmnt = delete(Task).where(Task.id == task_id)
+            db.session.execute(deleteStmnt)
             db.session.commit()
             return f"Toolhunt database successfully updated with completed task.  Task {task_id} deleted."
         except (exc.DBAPIError, exc.SQLAlchemyError) as err:
