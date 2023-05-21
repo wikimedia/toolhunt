@@ -41,7 +41,6 @@ def check_result_status(self, result, edited_field, submitted_value):
 @shared_task(bind=True, name="toolhunt-api.tasks.update_db")
 def update_db(self, result, task_id, form_data, tool_title):
     if result == "Status check passed; Toolhub records updated successfully.":
-        task = Task.query.get(task_id)
         completedTask = CompletedTask(
             tool_name=form_data["tool"],
             tool_title=tool_title,
@@ -51,9 +50,11 @@ def update_db(self, result, task_id, form_data, tool_title):
         )
         try:
             db.session.add(completedTask)
+            db.session.commit()
+            task = Task.query.get(task_id)
             db.session.delete(task)
             db.session.commit()
-            return "Toolhunt database successfully updated."
+            return f"Toolhunt database successfully updated with completed task.  Task {task_id} deleted."
         except (exc.DBAPIError, exc.SQLAlchemyError) as err:
             print(err)
             raise self.retry(exc=err, countdown=10)
