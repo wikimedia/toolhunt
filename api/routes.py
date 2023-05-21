@@ -7,7 +7,7 @@ from sqlalchemy import desc, exc, func, text
 
 from api import db
 from api.async_tasks import check_result_status, make_put_request, update_db
-from api.models import CompletedTask, Field, Task
+from api.models import CompletedTask, Field, Task, Tool
 from api.schemas import (
     ContributionLimitSchema,
     ContributionSchema,
@@ -227,6 +227,36 @@ class TaskList(MethodView):
         return Task.query.order_by(func.random()).limit(10)
 
 
+@tasks.route("/api/tasks/tool/<string:tool_name>")
+class TaskByTool(MethodView):
+    @tasks.response(200, TaskSchema(many=True))
+    def get(self, tool_name):
+        "Get a set of tasks for a given tool."
+        try:
+            # If tool_test fails then the tool name is bad and we can stop.
+            tool_test = Tool.query.get_or_404(tool_name)
+            if tool_test:
+                tasks = Task.query.filter_by(tool_name=tool_name)
+                return tasks
+        except exc.OperationalError as err:
+            print(err)
+            abort(503, message="Database connection failed.  Please try again.")
+
+
+@tasks.route("/api/tasks/type/<string:task_type>")
+class TaskByType(MethodView):
+    @tasks.response(200, TaskSchema(many=True))
+    def get(self, task_type):
+        "Get a set of tasks of a selected type."
+        # Could expand to select multiple task types
+        try:
+            tasks = Task.query.filter_by(field_name=task_type).limit(10)
+            return tasks
+        except exc.OperationalError as err:
+            print(err)
+            abort(503, message="Database connection failed.  Please try again.")
+
+
 @tasks.route("/api/tasks/<string:task_id>")
 class TaskById(MethodView):
     @tasks.response(200, TaskSchema)
@@ -262,6 +292,31 @@ class TaskById(MethodView):
             abort(400, message="The data given doesn't match the task specifications.")
 
 
+tools = Blueprint(
+    "tools", __name__, description="Get information about the tools in our database."
+)
+
+
+@tools.route("/api/tools/names")
+class ToolNames(MethodView):
+    @tools.response(200)
+    def get(self):
+        """Get the human-readable titles of all tools, and their Toolhub names."""
+        try:
+            # This will work, as long as there are no tools with the
+            # title "allTitles", and no duplicate names
+            # Seems improbable, but not impossible
+            response = db.session.execute(text("SELECT name, title FROM tool")).all()
+            titleCollection = {"allTitles": []}
+            for tool in response:
+                titleCollection[tool.title.decode()] = tool.name.decode()
+                titleCollection["allTitles"].append(tool.title.decode())
+            return titleCollection
+        except exc.OperationalError as err:
+            print(err)
+            abort(503, message="Database connection failed.  Please try again.")
+
+
 user = Blueprint(
     "user", __name__, description="Get information about the currently logged-in user."
 )
@@ -269,7 +324,7 @@ user = Blueprint(
 
 @user.route("/api/user")
 class CurrentUser(MethodView):
-    @tasks.response(200, UserSchema)
+    @user.response(200, UserSchema)
     def get(self):
         """Get the username of the currently logged-in user."""
         response = get_current_user()
